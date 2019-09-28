@@ -1,0 +1,7 @@
+#include "test.p"
+#include "yunoprocess/yunoprocess.h"
+#include "yunothread/yunothread.h"
+#include "yunofile/yunofile.h"
+#include "yunomutex/yunomutex.h"
+#include "yunopipe/yunopipe.h"
+#include "yunosemaphore/yunosemaphore.h"
