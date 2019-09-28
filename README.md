@@ -59,13 +59,13 @@ Yuno は makefile が同梱されているので下記のコマンドからビ�
 ビルドが成功するとディレクトリ `dist` 以下に `yuno.lib` `yuno.dll` `yuno.h` の三つの成果物が作成されます。
 
 ```shell
-$ make windows
+$ make target=windows
 ```
 
 また Yuno は簡単な動作確認用のテストコードも同梱しているので下記のコマンドからビルド・実行することができます。
 
 ```shell
-$ make windows-test
+$ make test target=windows
 ```
 
 ## TODO
