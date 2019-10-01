@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <stdlib.h>
 
-yunofile __stdcall *open_async_yunofile (const char *filename, int mode, yunosize buffersize){
+yunofile __yunocall *open_async_yunofile (const char *filename, int mode, yunosize buffersize){
 	yunofile *file = malloc(sizeof(yunofile));
 	if (file == NULL){
 		return NULL;

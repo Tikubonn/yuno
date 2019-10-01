@@ -3,7 +3,7 @@
 
 static int global_number;
 
-static int __stdcall example (void *parameter){
+static int __yunocall example (void *parameter){
 	test(global_number == 0);
 	global_number = 1;
 	test(global_number == 1);

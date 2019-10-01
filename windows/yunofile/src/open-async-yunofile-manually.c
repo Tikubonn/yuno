@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <windows.h>
 
-yunofile_status __stdcall open_async_yunofile_manually (const char *filename, int mode, void *bufferseq, yunosize buffersize, yunofile *file){
+yunofile_status __yunocall open_async_yunofile_manually (const char *filename, int mode, void *bufferseq, yunosize buffersize, yunofile *file){
 	DWORD access;
 	DWORD share;
 	DWORD creation;

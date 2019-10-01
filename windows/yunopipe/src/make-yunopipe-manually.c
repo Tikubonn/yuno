@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunopipe_status __stdcall make_yunopipe_manually (yunofile *inputfilep, yunofile *outputfilep){
+yunopipe_status __yunocall make_yunopipe_manually (yunofile *inputfilep, yunofile *outputfilep){
 	SECURITY_ATTRIBUTES secattr;
 	secattr.nLength = sizeof(secattr);
 	secattr.lpSecurityDescriptor = NULL;

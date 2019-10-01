@@ -9,7 +9,7 @@ static void copy_from_buffer (void *sequence, yunosize size, yunofile_buffer *bu
 	}
 }
 
-yunofile_status __stdcall wait_read_yunofile (void *sequence, yunofile_wait_mode waitmode, yunofile *file, yunosize *readsizep){
+yunofile_status __yunocall wait_read_yunofile (void *sequence, yunofile_wait_mode waitmode, yunofile *file, yunosize *readsizep){
 	if (file->asyncp == true){
 		if (file->requeststatus != YUNOFILE_READING){
 			return YUNOFILE_ERROR;

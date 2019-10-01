@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunosleep_status __stdcall yunosleep (int seconds){
+yunosleep_status __yunocall yunosleep (int seconds){
 	if (seconds < 0){
 		return YUNOSLEEP_ERROR;
 	}

@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __stdcall tell_yunofile (yunofile *file, yunosize *positionp){
+yunofile_status __yunocall tell_yunofile (yunofile *file, yunosize *positionp){
 	if (file->asyncp == true){
 		if (file->requeststatus != YUNOFILE_FREE){
 			return YUNOFILE_BUSY;

@@ -1,5 +1,5 @@
 
-typedef int __stdcall (*yunothread_entry_point)(void*);
+typedef int __yunocall (*yunothread_entry_point)(void*);
 
 //typedef yunothread;
 

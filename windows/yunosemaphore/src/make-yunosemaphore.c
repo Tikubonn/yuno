@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <stdlib.h>
 
-yunosemaphore __stdcall *make_yunosemaphore (int maxcount){
+yunosemaphore __yunocall *make_yunosemaphore (int maxcount){
 	yunosemaphore *semaphore = malloc(sizeof(yunosemaphore));
 	if (semaphore == NULL){
 		return NULL;

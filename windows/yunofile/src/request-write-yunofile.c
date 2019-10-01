@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __stdcall request_write_yunofile (void *sequence, yunosize size, yunofile *file){
+yunofile_status __yunocall request_write_yunofile (void *sequence, yunosize size, yunofile *file){
 	if (file->asyncp == true){
 		if (file->requeststatus != YUNOFILE_FREE){
 			return YUNOFILE_BUSY; // now busy!

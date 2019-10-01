@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __stdcall write_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *wrotesizep){
+yunofile_status __yunocall write_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *wrotesizep){
 	if (file->asyncp == true){
 		yunofile_status status1 = request_write_yunofile(sequence, size, file);
 		if (status1 != YUNOFILE_SUCCESS){

@@ -31,10 +31,21 @@ yunopipe/yunopipe.lib: .always
 yunosemaphore/yunosemaphore.lib: .always
 	make yunosemaphore.lib -C yunosemaphore
 
-yuno.dll: $(rootdir)/dist/yuno.dll
-	cp $(rootdir)/dist/yuno.dll yuno.dll
+ifeq ($(target), windows)
+dynamiclib=yuno.dll
+else
+ifeq ($(target), linux)
+dynamiclib=yuno.so
+else
+# unknown target!
+endif
+endif
 
-test.exe: test.c yunoprocess/yunoprocess.lib yunothread/yunothread.lib yunofile/yunofile.lib yunomutex/yunomutex.lib yunopipe/yunopipe.lib yunosemaphore/yunosemaphore.lib yuno.dll
-	gcc $(CFLAGS) test.c yunoprocess/yunoprocess.lib yunothread/yunothread.lib yunofile/yunofile.lib yunomutex/yunomutex.lib yunopipe/yunopipe.lib yunosemaphore/yunosemaphore.lib yuno.dll -o test.exe 
+$(dynamiclib): $(rootdir)/dist/$(dynamiclib)
+	cp $(rootdir)/dist/$(dynamiclib) $(dynamiclib)
+
+test.exe: test.c yunoprocess/yunoprocess.lib yunothread/yunothread.lib yunofile/yunofile.lib yunomutex/yunomutex.lib yunopipe/yunopipe.lib yunosemaphore/yunosemaphore.lib $(dynamiclib)
+	gcc $(CFLAGS) test.c yunoprocess/yunoprocess.lib yunothread/yunothread.lib yunofile/yunofile.lib yunomutex/yunomutex.lib yunopipe/yunopipe.lib yunosemaphore/yunosemaphore.lib $(dynamiclib) -o test.exe 
 
 .always:
+

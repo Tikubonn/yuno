@@ -1,2 +1,2 @@
 
-extern yunosleep_status __stdcall yunosleep (int);
+extern yunosleep_status __yunocall yunosleep (int);

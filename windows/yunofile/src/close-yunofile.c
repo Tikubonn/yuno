@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __stdcall close_yunofile (yunofile *file){
+yunofile_status __yunocall close_yunofile (yunofile *file){
 	if (file->requeststatus != YUNOFILE_FREE){
 		return YUNOFILE_BUSY;
 	}

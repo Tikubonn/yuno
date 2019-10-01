@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <stdlib.h>
 
-yunomutex __stdcall *make_yunomutex (){
+yunomutex __yunocall *make_yunomutex (){
 	yunomutex *mutex = malloc(sizeof(yunomutex));
 	if (mutex == NULL){
 		return NULL;

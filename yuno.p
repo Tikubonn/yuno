@@ -1,8 +1,17 @@
 
+#ifdef __linux__
+#define __yunocall
+#endif
+
+#ifdef _WINDOWS 
+#define __yunocall __yunocall
+#endif
+
+
 //typedef yunosize;
 //typedef yunossize;
 
-typedef int __stdcall (*yunoprocess_entry_point)(void*);
+typedef int __yunocall (*yunoprocess_entry_point)(void*);
 
 //typedef struct yunoprocess;
 
@@ -17,7 +26,7 @@ typedef enum yunoprocess_wait_mode {
 	YUNOPROCESS_NOWAIT
 } yunoprocess_wait_mode;
 
-typedef int __stdcall (*yunothread_entry_point)(void*);
+typedef int __yunocall (*yunothread_entry_point)(void*);
 
 //typedef yunothread;
 

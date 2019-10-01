@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunomutex_status __stdcall make_named_yunomutex_manually (const char *name, yunomutex *mutex){
+yunomutex_status __yunocall make_named_yunomutex_manually (const char *name, yunomutex *mutex){
 	if (name == NULL){
 		return YUNOSEMAPHORE_ERROR;
 	}

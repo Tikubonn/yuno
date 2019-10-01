@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunoprocess_status __stdcall close_yunoprocess (yunoprocess *process){
+yunoprocess_status __yunocall close_yunoprocess (yunoprocess *process){
 	if (CloseHandle(process->process) == 0){
 		return YUNOPROCESS_ERROR;
 	}

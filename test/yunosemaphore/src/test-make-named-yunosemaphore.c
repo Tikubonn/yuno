@@ -1,7 +1,7 @@
 #include <test.h>
 #include <yuno.h>
 
-static int __stdcall example (void *parameter){
+static int __yunocall example (void *parameter){
 	yunosemaphore *semaphore = parameter;
 	test(wait_yunosemaphore(YUNOSEMAPHORE_FOREVER, semaphore) == YUNOSEMAPHORE_SUCCESS);
 	yunosleep(1);

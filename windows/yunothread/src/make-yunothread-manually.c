@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-static DWORD __stdcall __yunothread_entry_point (LPVOID parameter){
+static DWORD __yunocall __yunothread_entry_point (LPVOID parameter){
 	int exitcode = 
 		((yunothread*)parameter)->entrypoint(
 			((yunothread*)parameter)->parameter);
@@ -9,7 +9,7 @@ static DWORD __stdcall __yunothread_entry_point (LPVOID parameter){
 	return 0;
 }
 
-yunothread_status __stdcall make_yunothread_manually (yunothread_entry_point entrypoint, void *parameter, yunothread *threadp){
+yunothread_status __yunocall make_yunothread_manually (yunothread_entry_point entrypoint, void *parameter, yunothread *threadp){
 	threadp->entrypoint = entrypoint;
 	threadp->parameter = parameter;
 	HANDLE thread = CreateThread(NULL, 0, __yunothread_entry_point, threadp, CREATE_SUSPENDED, NULL);

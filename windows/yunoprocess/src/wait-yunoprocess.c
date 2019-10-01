@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunoprocess_status __stdcall wait_yunoprocess (yunoprocess_wait_mode waitmode, yunoprocess *process){
+yunoprocess_status __yunocall wait_yunoprocess (yunoprocess_wait_mode waitmode, yunoprocess *process){
 	DWORD wait;
 	switch (waitmode){
 		case YUNOPROCESS_FOREVER:

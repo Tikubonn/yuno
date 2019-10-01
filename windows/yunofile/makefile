@@ -17,18 +17,18 @@ clean:
 	rm -f compiled/init-yunofile.o
 	rm -f compiled/init-async-yunofile.o
 	rm -f compiled/parse-yunofile-mode.o
-	rm -f compiled/open-yunostandard-input-manually.o
-	rm -f compiled/open-yunostandard-output-manually.o
-	rm -f compiled/open-yunostandard-error-manually.o
-	rm -f compiled/open-async-yunostandard-input-manually.o
-	rm -f compiled/open-async-yunostandard-output-manually.o
-	rm -f compiled/open-async-yunostandard-error-manually.o
-	rm -f compiled/open-yunostandard-input.o
-	rm -f compiled/open-yunostandard-output.o
-	rm -f compiled/open-yunostandard-error.o
-	rm -f compiled/open-async-yunostandard-input.o
-	rm -f compiled/open-async-yunostandard-output.o
-	rm -f compiled/open-async-yunostandard-error.o
+	rm -f compiled/get-yunostandard-input-manually.o
+	rm -f compiled/get-yunostandard-output-manually.o
+	rm -f compiled/get-yunostandard-error-manually.o
+	rm -f compiled/get-async-yunostandard-input-manually.o
+	rm -f compiled/get-async-yunostandard-output-manually.o
+	rm -f compiled/get-async-yunostandard-error-manually.o
+	rm -f compiled/get-yunostandard-input.o
+	rm -f compiled/get-yunostandard-output.o
+	rm -f compiled/get-yunostandard-error.o
+	rm -f compiled/get-async-yunostandard-input.o
+	rm -f compiled/get-async-yunostandard-output.o
+	rm -f compiled/get-async-yunostandard-error.o
 	rm -f compiled/open-yunofile-manually.o
 	rm -f compiled/open-async-yunofile-manually.o
 	rm -f compiled/open-yunofile.o
@@ -46,8 +46,8 @@ yunofile.private: yunofile.p src/init-yunofile.h src/init-async-yunofile.h src/s
 yunofile.public: yunofile.p 
 	cp yunofile.p yunofile.public
 
-yunofile.lib: compiled/setup-yunofile-overlapped.o compiled/write-sync-yunofile.o compiled/write-yunofile.o compiled/request-write-yunofile.o compiled/wait-write-yunofile.o compiled/read-sync-yunofile.o compiled/read-yunofile.o compiled/request-read-yunofile.o compiled/wait-read-yunofile.o compiled/init-yunofile.o compiled/init-async-yunofile.o compiled/parse-yunofile-mode.o compiled/open-yunostandard-input-manually.o compiled/open-yunostandard-output-manually.o compiled/open-yunostandard-error-manually.o compiled/open-async-yunostandard-input-manually.o compiled/open-async-yunostandard-output-manually.o compiled/open-async-yunostandard-error-manually.o compiled/open-yunostandard-input.o compiled/open-yunostandard-output.o compiled/open-yunostandard-error.o compiled/open-async-yunostandard-input.o compiled/open-async-yunostandard-output.o compiled/open-async-yunostandard-error.o compiled/open-yunofile-manually.o compiled/open-async-yunofile-manually.o compiled/open-yunofile.o compiled/open-async-yunofile.o compiled/close-yunofile.o compiled/free-yunofile.o compiled/tell-yunofile.o compiled/seek-yunofile.o compiled/yunofile-readablep.o compiled/yunofile-writablep.o
-	ar r yunofile.lib compiled/setup-yunofile-overlapped.o compiled/write-sync-yunofile.o compiled/write-yunofile.o compiled/request-write-yunofile.o compiled/wait-write-yunofile.o compiled/read-sync-yunofile.o compiled/read-yunofile.o compiled/request-read-yunofile.o compiled/wait-read-yunofile.o compiled/init-yunofile.o compiled/init-async-yunofile.o compiled/parse-yunofile-mode.o compiled/open-yunostandard-input-manually.o compiled/open-yunostandard-output-manually.o compiled/open-yunostandard-error-manually.o compiled/open-async-yunostandard-input-manually.o compiled/open-async-yunostandard-output-manually.o compiled/open-async-yunostandard-error-manually.o compiled/open-yunostandard-input.o compiled/open-yunostandard-output.o compiled/open-yunostandard-error.o compiled/open-async-yunostandard-input.o compiled/open-async-yunostandard-output.o compiled/open-async-yunostandard-error.o compiled/open-yunofile-manually.o compiled/open-async-yunofile-manually.o compiled/open-yunofile.o compiled/open-async-yunofile.o compiled/close-yunofile.o compiled/free-yunofile.o compiled/tell-yunofile.o compiled/seek-yunofile.o compiled/yunofile-readablep.o compiled/yunofile-writablep.o
+yunofile.lib: compiled/setup-yunofile-overlapped.o compiled/write-sync-yunofile.o compiled/write-yunofile.o compiled/request-write-yunofile.o compiled/wait-write-yunofile.o compiled/read-sync-yunofile.o compiled/read-yunofile.o compiled/request-read-yunofile.o compiled/wait-read-yunofile.o compiled/init-yunofile.o compiled/init-async-yunofile.o compiled/parse-yunofile-mode.o compiled/get-yunostandard-input-manually.o compiled/get-yunostandard-output-manually.o compiled/get-yunostandard-error-manually.o compiled/get-async-yunostandard-input-manually.o compiled/get-async-yunostandard-output-manually.o compiled/get-async-yunostandard-error-manually.o compiled/get-yunostandard-input.o compiled/get-yunostandard-output.o compiled/get-yunostandard-error.o compiled/get-async-yunostandard-input.o compiled/get-async-yunostandard-output.o compiled/get-async-yunostandard-error.o compiled/open-yunofile-manually.o compiled/open-async-yunofile-manually.o compiled/open-yunofile.o compiled/open-async-yunofile.o compiled/close-yunofile.o compiled/free-yunofile.o compiled/tell-yunofile.o compiled/seek-yunofile.o compiled/yunofile-readablep.o compiled/yunofile-writablep.o
+	ar r yunofile.lib compiled/setup-yunofile-overlapped.o compiled/write-sync-yunofile.o compiled/write-yunofile.o compiled/request-write-yunofile.o compiled/wait-write-yunofile.o compiled/read-sync-yunofile.o compiled/read-yunofile.o compiled/request-read-yunofile.o compiled/wait-read-yunofile.o compiled/init-yunofile.o compiled/init-async-yunofile.o compiled/parse-yunofile-mode.o compiled/get-yunostandard-input-manually.o compiled/get-yunostandard-output-manually.o compiled/get-yunostandard-error-manually.o compiled/get-async-yunostandard-input-manually.o compiled/get-async-yunostandard-output-manually.o compiled/get-async-yunostandard-error-manually.o compiled/get-yunostandard-input.o compiled/get-yunostandard-output.o compiled/get-yunostandard-error.o compiled/get-async-yunostandard-input.o compiled/get-async-yunostandard-output.o compiled/get-async-yunostandard-error.o compiled/open-yunofile-manually.o compiled/open-async-yunofile-manually.o compiled/open-yunofile.o compiled/open-async-yunofile.o compiled/close-yunofile.o compiled/free-yunofile.o compiled/tell-yunofile.o compiled/seek-yunofile.o compiled/yunofile-readablep.o compiled/yunofile-writablep.o
 
 compiled/setup-yunofile-overlapped.o: src/setup-yunofile-overlapped.c 
 	gcc $(CFLAGS) -c src/setup-yunofile-overlapped.c -o compiled/setup-yunofile-overlapped.o
@@ -85,41 +85,41 @@ compiled/init-async-yunofile.o: src/init-async-yunofile.c
 compiled/parse-yunofile-mode.o: src/parse-yunofile-mode.c 
 	gcc $(CFLAGS) -c src/parse-yunofile-mode.c -o compiled/parse-yunofile-mode.o
 
-compiled/open-yunostandard-input-manually.o: src/open-yunostandard-input-manually.c 
-	gcc $(CFLAGS) -c src/open-yunostandard-input-manually.c -o compiled/open-yunostandard-input-manually.o
+compiled/get-yunostandard-input-manually.o: src/get-yunostandard-input-manually.c 
+	gcc $(CFLAGS) -c src/get-yunostandard-input-manually.c -o compiled/get-yunostandard-input-manually.o
 
-compiled/open-yunostandard-output-manually.o: src/open-yunostandard-output-manually.c 
-	gcc $(CFLAGS) -c src/open-yunostandard-output-manually.c -o compiled/open-yunostandard-output-manually.o
+compiled/get-yunostandard-output-manually.o: src/get-yunostandard-output-manually.c 
+	gcc $(CFLAGS) -c src/get-yunostandard-output-manually.c -o compiled/get-yunostandard-output-manually.o
 
-compiled/open-yunostandard-error-manually.o: src/open-yunostandard-error-manually.c 
-	gcc $(CFLAGS) -c src/open-yunostandard-error-manually.c -o compiled/open-yunostandard-error-manually.o
+compiled/get-yunostandard-error-manually.o: src/get-yunostandard-error-manually.c 
+	gcc $(CFLAGS) -c src/get-yunostandard-error-manually.c -o compiled/get-yunostandard-error-manually.o
 
-compiled/open-async-yunostandard-input-manually.o: src/open-async-yunostandard-input-manually.c 
-	gcc $(CFLAGS) -c src/open-async-yunostandard-input-manually.c -o compiled/open-async-yunostandard-input-manually.o
+compiled/get-async-yunostandard-input-manually.o: src/get-async-yunostandard-input-manually.c 
+	gcc $(CFLAGS) -c src/get-async-yunostandard-input-manually.c -o compiled/get-async-yunostandard-input-manually.o
 
-compiled/open-async-yunostandard-output-manually.o: src/open-async-yunostandard-output-manually.c 
-	gcc $(CFLAGS) -c src/open-async-yunostandard-output-manually.c -o compiled/open-async-yunostandard-output-manually.o
+compiled/get-async-yunostandard-output-manually.o: src/get-async-yunostandard-output-manually.c 
+	gcc $(CFLAGS) -c src/get-async-yunostandard-output-manually.c -o compiled/get-async-yunostandard-output-manually.o
 
-compiled/open-async-yunostandard-error-manually.o: src/open-async-yunostandard-error-manually.c 
-	gcc $(CFLAGS) -c src/open-async-yunostandard-error-manually.c -o compiled/open-async-yunostandard-error-manually.o
+compiled/get-async-yunostandard-error-manually.o: src/get-async-yunostandard-error-manually.c 
+	gcc $(CFLAGS) -c src/get-async-yunostandard-error-manually.c -o compiled/get-async-yunostandard-error-manually.o
 
-compiled/open-yunostandard-input.o: src/open-yunostandard-input.c 
-	gcc $(CFLAGS) -c src/open-yunostandard-input.c -o compiled/open-yunostandard-input.o
+compiled/get-yunostandard-input.o: src/get-yunostandard-input.c 
+	gcc $(CFLAGS) -c src/get-yunostandard-input.c -o compiled/get-yunostandard-input.o
 
-compiled/open-yunostandard-output.o: src/open-yunostandard-output.c 
-	gcc $(CFLAGS) -c src/open-yunostandard-output.c -o compiled/open-yunostandard-output.o
+compiled/get-yunostandard-output.o: src/get-yunostandard-output.c 
+	gcc $(CFLAGS) -c src/get-yunostandard-output.c -o compiled/get-yunostandard-output.o
 
-compiled/open-yunostandard-error.o: src/open-yunostandard-error.c 
-	gcc $(CFLAGS) -c src/open-yunostandard-error.c -o compiled/open-yunostandard-error.o
+compiled/get-yunostandard-error.o: src/get-yunostandard-error.c 
+	gcc $(CFLAGS) -c src/get-yunostandard-error.c -o compiled/get-yunostandard-error.o
 
-compiled/open-async-yunostandard-input.o: src/open-async-yunostandard-input.c 
-	gcc $(CFLAGS) -c src/open-async-yunostandard-input.c -o compiled/open-async-yunostandard-input.o
+compiled/get-async-yunostandard-input.o: src/get-async-yunostandard-input.c 
+	gcc $(CFLAGS) -c src/get-async-yunostandard-input.c -o compiled/get-async-yunostandard-input.o
 
-compiled/open-async-yunostandard-output.o: src/open-async-yunostandard-output.c 
-	gcc $(CFLAGS) -c src/open-async-yunostandard-output.c -o compiled/open-async-yunostandard-output.o
+compiled/get-async-yunostandard-output.o: src/get-async-yunostandard-output.c 
+	gcc $(CFLAGS) -c src/get-async-yunostandard-output.c -o compiled/get-async-yunostandard-output.o
 
-compiled/open-async-yunostandard-error.o: src/open-async-yunostandard-error.c 
-	gcc $(CFLAGS) -c src/open-async-yunostandard-error.c -o compiled/open-async-yunostandard-error.o
+compiled/get-async-yunostandard-error.o: src/get-async-yunostandard-error.c 
+	gcc $(CFLAGS) -c src/get-async-yunostandard-error.c -o compiled/get-async-yunostandard-error.o
 
 compiled/open-yunofile-manually.o: src/open-yunofile-manually.c 
 	gcc $(CFLAGS) -c src/open-yunofile-manually.c -o compiled/open-yunofile-manually.o

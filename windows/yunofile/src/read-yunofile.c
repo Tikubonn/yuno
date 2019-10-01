@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __stdcall read_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
+yunofile_status __yunocall read_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
 	if (file->asyncp == true){
 		yunofile_status status1 = request_read_yunofile(size, file);
 		if (status1 != YUNOFILE_SUCCESS){

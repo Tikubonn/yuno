@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <stdlib.h>
 
-yunothread __stdcall *make_yunothread (yunothread_entry_point entrypoint, void *parameter){
+yunothread __yunocall *make_yunothread (yunothread_entry_point entrypoint, void *parameter){
 	yunothread *thread = malloc(sizeof(yunothread));
 	if (thread == NULL){
 		return NULL;

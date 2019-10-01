@@ -2,7 +2,7 @@
 #include <windows.h>
 #define min(a, b) ((a)<(b)?(a):(b))
 
-yunofile_status __stdcall request_read_yunofile (yunosize size, yunofile *file){
+yunofile_status __yunocall request_read_yunofile (yunosize size, yunofile *file){
 	if (file->asyncp == true){
 		if (file->requeststatus != YUNOFILE_FREE){
 			return YUNOFILE_BUSY;

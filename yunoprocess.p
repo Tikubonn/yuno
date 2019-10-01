@@ -1,5 +1,5 @@
 
-typedef int __stdcall (*yunoprocess_entry_point)(void*);
+typedef int __yunocall (*yunoprocess_entry_point)(void*);
 
 //typedef struct yunoprocess;
 

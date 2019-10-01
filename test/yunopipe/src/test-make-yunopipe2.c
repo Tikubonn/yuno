@@ -1,15 +1,15 @@
 #include <test.h>
 #include <yuno.h>
 
-typedef struct pipe {
+typedef struct somepipes {
 	yunofile *inread;
 	yunofile *inwrite;
 	yunofile *outread;
 	yunofile *outwrite;
-} pipe;
+} somepipes;
 
-static int __stdcall example (void *parameter){
-	pipe *pip = parameter;
+static int __yunocall example (void *parameter){
+	somepipes *pip = parameter;
 	test(close_yunofile(pip->inwrite) == YUNOFILE_SUCCESS);
 	test(close_yunofile(pip->outread) == YUNOFILE_SUCCESS);
 	while (1){
@@ -39,7 +39,7 @@ void test_make_yunopipe2 (){
 	test(make_yunopipe(&inread, &inwrite) == YUNOPIPE_SUCCESS);
 	yunofile *outread, *outwrite;
 	test(make_yunopipe(&outread, &outwrite) == YUNOPIPE_SUCCESS);
-	pipe pip;
+	somepipes pip;
 	pip.inread = inread;
 	pip.inwrite = inwrite;
 	pip.outread = outread;

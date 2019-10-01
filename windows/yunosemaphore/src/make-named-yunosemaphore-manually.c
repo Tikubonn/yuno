@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunosemaphore_status __stdcall make_named_yunosemaphore_manually (const char *name, int maxcount, yunosemaphore *semaphore){
+yunosemaphore_status __yunocall make_named_yunosemaphore_manually (const char *name, int maxcount, yunosemaphore *semaphore){
 	if (name == NULL){
 		return YUNOSEMAPHORE_ERROR;
 	}

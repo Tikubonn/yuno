@@ -1,7 +1,7 @@
 #include <test.h>
 #include <yuno.h>
 
-static int __stdcall example (void *parameter){
+static int __yunocall example (void *parameter){
 	yunomutex *mutex = (yunomutex*)parameter;
 	test(wait_yunomutex(YUNOMUTEX_FOREVER, mutex) == YUNOPROCESS_SUCCESS);
 	test(yunosleep(1) == YUNOSLEEP_SUCCESS);

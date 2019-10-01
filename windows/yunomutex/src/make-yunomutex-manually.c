@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunomutex_status __stdcall make_yunomutex_manually (yunomutex *mutex){
+yunomutex_status __yunocall make_yunomutex_manually (yunomutex *mutex){
 	SECURITY_ATTRIBUTES secattr;
 	secattr.nLength = sizeof(secattr);
 	secattr.lpSecurityDescriptor = NULL;

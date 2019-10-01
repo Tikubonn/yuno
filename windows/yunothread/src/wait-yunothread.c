@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunothread_status __stdcall wait_yunothread (yunothread_wait_mode waitmode, yunothread *thread){
+yunothread_status __yunocall wait_yunothread (yunothread_wait_mode waitmode, yunothread *thread){
 	DWORD wait;
 	switch (waitmode){
 		case YUNOTHREAD_FOREVER:

@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __stdcall wait_write_yunofile (yunofile_wait_mode waitmode, yunofile *file, yunosize *wrotesizep){
+yunofile_status __yunocall wait_write_yunofile (yunofile_wait_mode waitmode, yunofile *file, yunosize *wrotesizep){
 	if (file->asyncp == true){
 		if (file->requeststatus != YUNOFILE_WRITING){
 			return YUNOFILE_ERROR;

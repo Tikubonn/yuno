@@ -200,7 +200,7 @@ static int clone_process (HANDLE *processp, HANDLE *threadp){
 	entrypoint の実行結果がそのままプロセスの終了コードになります。
 */
 
-static DWORD __stdcall __subprocess_entry_point (LPVOID parameter){
+static DWORD __yunocall __subprocess_entry_point (LPVOID parameter){
 	int exitcode = 
 		((yunoprocess*)parameter)->entrypoint(
 			((yunoprocess*)parameter)->parameter);
@@ -271,7 +271,7 @@ static int make_subprocess (yunoprocess_entry_point entrypoint, void *parameter,
 
 #define MAKE_YUNOPROCESS_MANUALLY_MUTEX_NAME "MUTEX_FOR_MAKE_YUNOPROCESS_MANUALLY"
 
-yunoprocess_status __stdcall make_yunoprocess_manually (yunoprocess_entry_point entrypoint, void *parameter, yunoprocess *process){
+yunoprocess_status __yunocall make_yunoprocess_manually (yunoprocess_entry_point entrypoint, void *parameter, yunoprocess *process){
 	/*
 		プロセスの複製中に別スレッドにメモリを書き換えられるのは嫌なので
 		ミューテックスを用いた排他制御を行っています。

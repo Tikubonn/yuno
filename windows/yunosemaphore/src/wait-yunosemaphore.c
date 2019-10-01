@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-yunosemaphore_status __stdcall wait_yunosemaphore (yunosemaphore_wait_mode waitmode, yunosemaphore *semaphore){
+yunosemaphore_status __yunocall wait_yunosemaphore (yunosemaphore_wait_mode waitmode, yunosemaphore *semaphore){
 	DWORD wait;
 	switch (waitmode){
 		case YUNOSEMAPHORE_FOREVER:
