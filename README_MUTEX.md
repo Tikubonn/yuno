@@ -45,22 +45,10 @@ int main (){
 yunomutex_status make_yunomutex_manually (yunomutex*);
 ```
 
-## make_named_yunomutex_manually
-
-```c
-yunomutex_status make_named_yunomutex_manually (const char*, yunomutex*);
-```
-
 ## make_yunomutex
 
 ```c
 yunomutex *make_yunomutex ();
-```
-
-## make_named_yunomutex
-
-```c
-yunomutex *make_named_yunomutex (const char*);
 ```
 
 ## wait_yunomutex

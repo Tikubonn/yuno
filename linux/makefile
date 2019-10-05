@@ -14,6 +14,7 @@ clean:
 	make clean -C yunomutex
 	make clean -C yunosemaphore
 	make clean -C yunopipe
+	make clean -C yunoshared-memory
 
 yuno.private: .always
 	make yunosize.private -C yunosize
@@ -24,7 +25,8 @@ yuno.private: .always
 	make yunomutex.private -C yunomutex
 	make yunosemaphore.private -C yunosemaphore
 	make yunopipe.private -C yunopipe
-	cat yunosize/yunosize.private yunothread/yunothread.private yunoprocess/yunoprocess.private yunofile-buffer/yunofile-buffer.private yunofile/yunofile.private yunomutex/yunomutex.private yunosemaphore/yunosemaphore.private yunopipe/yunopipe.private > yuno.private
+	make yunoshared-memory.private -C yunoshared-memory
+	cat yunosize/yunosize.private yunothread/yunothread.private yunoprocess/yunoprocess.private yunofile-buffer/yunofile-buffer.private yunofile/yunofile.private yunomutex/yunomutex.private yunosemaphore/yunosemaphore.private yunopipe/yunopipe.private yunoshared-memory/yunoshared-memory.private > yuno.private
 
 yuno.public: .always
 	make yunosize.public -C yunosize 
@@ -35,7 +37,8 @@ yuno.public: .always
 	make yunomutex.public -C yunomutex
 	make yunosemaphore.public -C yunosemaphore
 	make yunopipe.public -C yunopipe
-	cat yunosize/yunosize.public yunothread/yunothread.public yunoprocess/yunoprocess.public yunofile-buffer/yunofile-buffer.public yunofile/yunofile.public yunomutex/yunomutex.public yunosemaphore/yunosemaphore.public yunopipe/yunopipe.public > yuno.public
+	make yunoshared-memory.public -C yunoshared-memory
+	cat yunosize/yunosize.public yunothread/yunothread.public yunoprocess/yunoprocess.public yunofile-buffer/yunofile-buffer.public yunofile/yunofile.public yunomutex/yunomutex.public yunosemaphore/yunosemaphore.public yunopipe/yunopipe.public yunoshared-memory/yunoshared-memory.public > yuno.public
 
 temp=$(shell mktemp -d)
 workdir:=$(CURDIR)
@@ -48,6 +51,7 @@ yuno.a: .always
 	make yunomutex.a -C yunomutex
 	make yunosemaphore.a -C yunosemaphore
 	make yunopipe.a -C yunopipe
+	make yunoshared-memory.a -C yunoshared-memory
 	cd $(temp) && \
 	ar x $(workdir)/yunothread/yunothread.a && \
 	ar x $(workdir)/yunoprocess/yunoprocess.a && \
@@ -56,6 +60,7 @@ yuno.a: .always
 	ar x $(workdir)/yunomutex/yunomutex.a && \
 	ar x $(workdir)/yunosemaphore/yunosemaphore.a && \
 	ar x $(workdir)/yunopipe/yunopipe.a && \
+	ar x $(workdir)/yunoshared-memory/yunoshared-memory.a && \
 	ar r $(workdir)/yuno.a *.o
 
 yuno.so: .always
@@ -66,6 +71,7 @@ yuno.so: .always
 	make yunomutex.a -C yunomutex
 	make yunosemaphore.a -C yunosemaphore
 	make yunopipe.a -C yunopipe
+	make yunoshared-memory.a -C yunoshared-memory
 	cd $(temp) && \
 	ar x $(workdir)/yunothread/yunothread.a && \
 	ar x $(workdir)/yunoprocess/yunoprocess.a && \
@@ -74,5 +80,5 @@ yuno.so: .always
 	ar x $(workdir)/yunomutex/yunomutex.a && \
 	ar x $(workdir)/yunosemaphore/yunosemaphore.a && \
 	ar x $(workdir)/yunopipe/yunopipe.a && \
+	ar x $(workdir)/yunoshared-memory/yunoshared-memory.a && \
 	gcc $(CFLAGS) -shared -o $(workdir)/yuno.so *.o -lrt
-

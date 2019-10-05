@@ -1,5 +1,2 @@
 #include "src/test-make-yunomutex.h"
 #include "src/test-make-yunomutex2.h"
-#include "src/test-make-named-yunomutex.h"
-#include "src/test-make-named-yunomutex2.h"
-#include "src/test-yunomutex.h"

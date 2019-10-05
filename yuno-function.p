@@ -1,6 +1,6 @@
 
-extern yunoprocess_status __yunocall make_yunoprocess_manually (yunoprocess_entry_point, void*, yunoprocess*);
-extern yunoprocess __yunocall *make_yunoprocess (yunoprocess_entry_point, void*);
+//extern yunoprocess_status __yunocall make_yunoprocess_manually (yunoprocess_entry_point, void*, yunoprocess*);
+//extern yunoprocess __yunocall *make_yunoprocess (yunoprocess_entry_point, void*);
 extern yunoprocess_status __yunocall start_yunoprocess (yunoprocess*);
 extern yunoprocess_status __yunocall wait_yunoprocess (yunoprocess_wait_mode, yunoprocess*);
 extern yunoprocess_status __yunocall close_yunoprocess (yunoprocess*);
@@ -45,18 +45,14 @@ extern yunofile __yunocall *get_async_yunostandard_output (yunosize);
 extern yunofile __yunocall *get_async_yunostandard_error (yunosize);
 
 extern yunomutex_status __yunocall make_yunomutex_manually (yunomutex*);
-extern yunomutex_status __yunocall make_named_yunomutex_manually (const char*, yunomutex*);
 extern yunomutex __yunocall *make_yunomutex ();
-extern yunomutex __yunocall *make_named_yunomutex (const char*);
 extern yunomutex_status __yunocall wait_yunomutex (yunomutex_wait_mode, yunomutex*);
 extern yunomutex_status __yunocall release_yunomutex (yunomutex*);
 extern yunomutex_status __yunocall close_yunomutex (yunomutex*);
 extern yunomutex_status __yunocall free_yunomutex (yunomutex*);
 
 extern yunosemaphore_status __yunocall make_yunosemaphore_manually (int, yunosemaphore*);
-extern yunosemaphore_status __yunocall make_named_yunosemaphore_manually (const char*, int, yunosemaphore*);
 extern yunosemaphore __yunocall *make_yunosemaphore (int);
-extern yunosemaphore __yunocall *make_named_yunosemaphore (const char*, int);
 extern yunosemaphore_status __yunocall wait_yunosemaphore (yunosemaphore_wait_mode, yunosemaphore*);
 extern yunosemaphore_status __yunocall release_yunosemaphore (yunosemaphore*);
 extern yunosemaphore_status __yunocall close_yunosemaphore (yunosemaphore*);
@@ -66,3 +62,6 @@ extern yunosleep_status __yunocall yunosleep (int);
 
 extern yunopipe_status __yunocall make_yunopipe_manually (yunofile*, yunofile*);
 extern yunopipe_status __yunocall make_yunopipe (yunofile**, yunofile**);
+
+//extern void __yunocall *allocate_yunoshared_memory (size_t);
+//extern yunoshared_memory_status __yunocall free_yunoshared_memory (void*, size_t);

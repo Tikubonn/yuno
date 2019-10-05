@@ -10,22 +10,10 @@
 yunosemaphore_status make_yunosemaphore_manually (yunosemaphore*);
 ```
 
-## make_named_yunosemaphore_manually
-
-```c
-yunosemaphore_status make_named_yunosemaphore_manually (const char*, yunosemaphore*);
-```
-
 ## make_yunosemaphore
 
 ```c
 yunosemaphore *make_yunosemaphore ();
-```
-
-## make_named_yunosemaphore
-
-```c
-yunosemaphore *make_named_yunosemaphore (const char*);
 ```
 
 ## wait_yunosemaphore

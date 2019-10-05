@@ -1,51 +1,56 @@
 
+CFLAGS += -I$(CURDIR)
 
-all: .always
-	make test.exe 
-	gdb test.exe 
-	
+ifeq ($(target), windows)
+yunolib=yuno.dll
+else
+ifeq ($(target), linux)
+yunolib=yuno.so
+else
+endif
+endif
+
+usage: .always
+	@echo "Usage:"
+	@echo "  make clean     remove unnecessary files."
+	@echo "  make [target]  build test and run."
+
 clean: .always
-	rm -f yuno.dll
-	make clean -C yunoprocess
-	make clean -C yunothread
+	make clean -C yunobitarray
+	make clean -C yunoallocator
 	make clean -C yunofile
 	make clean -C yunomutex
 	make clean -C yunopipe
+	make clean -C yunoprocess
 	make clean -C yunosemaphore
+	make clean -C yunoshared-memory
+	make clean -C yunothread
 
-yunoprocess/yunoprocess.lib: .always
-	make yunoprocess.lib -C yunoprocess
+yunobitarray: .always
+	make test -C yunobitarray 
 
-yunothread/yunothread.lib: .always
-	make yunothread.lib -C yunothread
+yunoallocator: .always
+	make test -C yunoallocator 
 
-yunofile/yunofile.lib: .always
-	make yunofile.lib -C yunofile
+yunofile: .always
+	make test -C yunofile 
 
-yunomutex/yunomutex.lib: .always
-	make yunomutex.lib -C yunomutex
+yunomutex: .always
+	make test -C yunomutex 
 
-yunopipe/yunopipe.lib: .always
-	make yunopipe.lib -C yunopipe
+yunopipe: .always
+	make test -C yunopipe 
 
-yunosemaphore/yunosemaphore.lib: .always
-	make yunosemaphore.lib -C yunosemaphore
+yunoprocess: .always
+	make test -C yunoprocess 
 
-ifeq ($(target), windows)
-dynamiclib=yuno.dll
-else
-ifeq ($(target), linux)
-dynamiclib=yuno.so
-else
-# unknown target!
-endif
-endif
+yunosemaphore: .always
+	make test -C yunosemaphore 
 
-$(dynamiclib): $(rootdir)/dist/$(dynamiclib)
-	cp $(rootdir)/dist/$(dynamiclib) $(dynamiclib)
+yunoshared-memory: .always
+	make test -C yunoshared-memory 
 
-test.exe: test.c yunoprocess/yunoprocess.lib yunothread/yunothread.lib yunofile/yunofile.lib yunomutex/yunomutex.lib yunopipe/yunopipe.lib yunosemaphore/yunosemaphore.lib $(dynamiclib)
-	gcc $(CFLAGS) test.c yunoprocess/yunoprocess.lib yunothread/yunothread.lib yunofile/yunofile.lib yunomutex/yunomutex.lib yunopipe/yunopipe.lib yunosemaphore/yunosemaphore.lib $(dynamiclib) -o test.exe 
+yunothread: .always
+	make test -C yunothread 
 
 .always:
-

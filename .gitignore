@@ -1,7 +1,8 @@
 *.o
 *.exe
+*.a
+*.so
 *.lib
 *.dll
 *.private
 *.public
-

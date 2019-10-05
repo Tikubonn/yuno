@@ -13,11 +13,11 @@ clean: .always
 	rm -f compiled/get-yunoprocess-exit-code.o
 	rm -f compiled/free-yunoprocess.o
 
-yunoprocess.private: yunoprocess.p
-	cat yunoprocess.p > yunoprocess.private
+yunoprocess.private: yunoprocess.p src/make-yunoprocess-manually.h src/make-yunoprocess.h
+	cat yunoprocess.p src/make-yunoprocess-manually.h src/make-yunoprocess.h > yunoprocess.private
 
-yunoprocess.public: yunoprocess.p
-	cat yunoprocess.p > yunoprocess.public
+yunoprocess.public: yunoprocess.p src/make-yunoprocess-manually.h src/make-yunoprocess.h
+	cat yunoprocess.p src/make-yunoprocess-manually.h src/make-yunoprocess.h > yunoprocess.public
 
 yunoprocess.lib: compiled/make-yunoprocess-manually.o compiled/make-yunoprocess.o compiled/start-yunoprocess.o compiled/wait-yunoprocess.o compiled/close-yunoprocess.o compiled/get-yunoprocess-exit-code.o compiled/free-yunoprocess.o
 	ar r yunoprocess.lib compiled/make-yunoprocess-manually.o compiled/make-yunoprocess.o compiled/start-yunoprocess.o compiled/wait-yunoprocess.o compiled/close-yunoprocess.o compiled/get-yunoprocess-exit-code.o compiled/free-yunoprocess.o

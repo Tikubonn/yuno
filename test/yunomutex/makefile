@@ -1,29 +1,46 @@
 
-all:
-	make yunomutex.lib
+export CFLAGS += -I$(CURDIR) -L$(CURDIR) -lyuno
+
+ifeq ($(target), windows)
+executefile=yunomutex.exe
+else
+ifeq ($(target), linux)
+executefile=yunomutex
+else
+endif
+endif
+
+test: .always
+	make $(executefile)
+	gdb $(executefile) --batch --eval-command=run --quiet
 
 clean: 
-	rm -f yunomutex.lib
 	rm -f compiled/test-make-yunomutex.o
 	rm -f compiled/test-make-yunomutex2.o
-	rm -f compiled/test-make-named-yunomutex.o
-	rm -f compiled/test-make-named-yunomutex2.o
-	rm -f compiled/test-yunomutex.o
+	rm -f compiled/main.o
 
-yunomutex.lib: compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/test-make-named-yunomutex.o compiled/test-make-named-yunomutex2.o compiled/test-yunomutex.o
-	ar r yunomutex.lib compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/test-make-named-yunomutex.o compiled/test-make-named-yunomutex2.o compiled/test-yunomutex.o
+ifeq ($(target), windows)
+yunolib=yuno.dll
+else
+ifeq ($(target), linux)
+yunolib=yuno.so
+else
+endif
+endif
 
-compiled/test-make-yunomutex.o: src/test-make-yunomutex.c 
+$(yunolib): $(rootdir)/dist/$(yunolib)
+	cp $(rootdir)/dist/$(yunolib) $(yunolib)
+
+compiled/test-make-yunomutex.o: src/test-make-yunomutex.c $(yunolib)
 	gcc $(CFLAGS) -c src/test-make-yunomutex.c -o compiled/test-make-yunomutex.o
 
-compiled/test-make-yunomutex2.o: src/test-make-yunomutex2.c 
+compiled/test-make-yunomutex2.o: src/test-make-yunomutex2.c $(yunolib)
 	gcc $(CFLAGS) -c src/test-make-yunomutex2.c -o compiled/test-make-yunomutex2.o
 
-compiled/test-make-named-yunomutex.o: src/test-make-named-yunomutex.c 
-	gcc $(CFLAGS) -c src/test-make-named-yunomutex.c -o compiled/test-make-named-yunomutex.o
+compiled/main.o: src/main.c $(yunolib)
+	gcc $(CFLAGS) -c src/main.c -o compiled/main.o
 
-compiled/test-make-named-yunomutex2.o: src/test-make-named-yunomutex2.c 
-	gcc $(CFLAGS) -c src/test-make-named-yunomutex2.c -o compiled/test-make-named-yunomutex2.o
+$(executefile): compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/main.o $(yunolib)
+	gcc $(CFLAGS) compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/main.o -o $(executefile)
 
-compiled/test-yunomutex.o: src/test-yunomutex.c 
-	gcc $(CFLAGS) -c src/test-yunomutex.c -o compiled/test-yunomutex.o
+.always:

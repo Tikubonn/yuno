@@ -124,7 +124,7 @@ static int copy_process_memory_area_with_valloc (void *address, SIZE_T size, HAN
 	関数が成功した場合には 0 失敗した場合には非ゼロの整数を返します。
 */
 
-static int copy_process_memory (HANDLE processfrom, HANDLE processto){
+static int copy_process_memory (HANDLE processfrom, HANDLE processto, yunoshared_memory **sharedmemoryp){
 	SIZE_T memsize;
 	if (get_process_memory_size(processfrom, &memsize) != 0){
 		return 1;
@@ -142,33 +142,38 @@ static int copy_process_memory (HANDLE processfrom, HANDLE processto){
 		if (meminfo.State == MEM_COMMIT && 
 				meminfo.Protect == PAGE_READWRITE){
 			/*
-				使用済み且つ読み書き可能な領域があれば
-				そのデータを processto の同じ位置の領域に書き込みます。
+				アドレスが共有メモリでなければ領域の複製を行います。
 			*/
-			if (meminfo.Type == MEM_IMAGE){
+			if (yunoshared_memory_managed_addressp(meminfo.BaseAddress, sharedmemoryp) == false){
 				/*
-					領域が MEM_IMAGE の場合にはデータを直書きする。
+					使用済み且つ読み書き可能な領域があれば
+					そのデータを processto の同じ位置の領域に書き込みます。
 				*/
-				if (copy_process_memory_area(
-					meminfo.BaseAddress,
-					meminfo.BaseAddress,
-					meminfo.RegionSize,
-					processfrom, 
-					processto) != 0){
-					return 1;
+				if (meminfo.Type == MEM_IMAGE){
+					/*
+						領域が MEM_IMAGE の場合にはデータを直書きする。
+					*/
+					if (copy_process_memory_area(
+						meminfo.BaseAddress,
+						meminfo.BaseAddress,
+						meminfo.RegionSize,
+						processfrom, 
+						processto) != 0){
+						return 1;
+					}
 				}
-			}
-			else if (meminfo.Type == MEM_PRIVATE){
-				/*
-					領域が MEM_PRIVATE の場合には 
-					VirtualAlloc 関数で領域を確保しデータを書き込みます。
-				*/
-				if (copy_process_memory_area_with_valloc(
-					meminfo.BaseAddress,
-					meminfo.RegionSize,
-					processfrom, 
-					processto) != 0){
-					return 1;
+				else if (meminfo.Type == MEM_PRIVATE){
+					/*
+						領域が MEM_PRIVATE の場合には 
+						VirtualAlloc 関数で領域を確保しデータを書き込みます。
+					*/
+					if (copy_process_memory_area_with_valloc(
+						meminfo.BaseAddress,
+						meminfo.RegionSize,
+						processfrom, 
+						processto) != 0){
+						return 1;
+					}
 				}
 			}
 		}
@@ -201,9 +206,13 @@ static int clone_process (HANDLE *processp, HANDLE *threadp){
 */
 
 static DWORD __yunocall __subprocess_entry_point (LPVOID parameter){
+	yunoprocess *process = parameter;
+	if (remap_yunoshared_memory(process->sharedmemoryp) != 0){
+		return 1;
+	}
 	int exitcode = 
-		((yunoprocess*)parameter)->entrypoint(
-			((yunoprocess*)parameter)->parameter);
+		process->entrypoint(
+			process->parameter);
 	ExitProcess(exitcode); // exit process!
 	return 0;
 }
@@ -214,7 +223,7 @@ static DWORD __yunocall __subprocess_entry_point (LPVOID parameter){
 	関数が成功した場合には 0 失敗した場合には非ゼロの整数を返します。
 */
 
-static int make_subprocess (yunoprocess_entry_point entrypoint, void *parameter, yunoprocess *processp){
+static int make_subprocess (yunoprocess_entry_point entrypoint, void *parameter, yunoprocess *processp, yunoshared_memory **sharedmemoryp){
 	/*
 		まずプロセスを複製する前に関数と引数のアドレスを process に代入します。
 		これをしないと複製先のプロセスがどのアドレスを呼べばよいのかわからなくなるからです。
@@ -222,13 +231,14 @@ static int make_subprocess (yunoprocess_entry_point entrypoint, void *parameter,
 	*/
 	processp->entrypoint = entrypoint;
 	processp->parameter = parameter;
+	processp->sharedmemoryp = sharedmemoryp;
 	HANDLE process;
 	HANDLE thread;
 	if (clone_process(&process, &thread) != 0){
 		return 1;
 	}
 	HANDLE currentprocess = GetCurrentProcess();
-	if (copy_process_memory(currentprocess, process) != 0){
+	if (copy_process_memory(currentprocess, process, sharedmemoryp) != 0){
 		/*
 			例外を捕捉した場合にはプロセスを中断しハンドルを解放します。
 		*/
@@ -271,7 +281,7 @@ static int make_subprocess (yunoprocess_entry_point entrypoint, void *parameter,
 
 #define MAKE_YUNOPROCESS_MANUALLY_MUTEX_NAME "MUTEX_FOR_MAKE_YUNOPROCESS_MANUALLY"
 
-yunoprocess_status __yunocall make_yunoprocess_manually (yunoprocess_entry_point entrypoint, void *parameter, yunoprocess *process){
+yunoprocess_status __yunocall __make_yunoprocess_manually (yunoprocess_entry_point entrypoint, void *parameter, yunoprocess *process, yunoshared_memory **sharedmemoryp){
 	/*
 		プロセスの複製中に別スレッドにメモリを書き換えられるのは嫌なので
 		ミューテックスを用いた排他制御を行っています。
@@ -279,7 +289,7 @@ yunoprocess_status __yunocall make_yunoprocess_manually (yunoprocess_entry_point
 	HANDLE mutex = CreateMutex(NULL, FALSE, MAKE_YUNOPROCESS_MANUALLY_MUTEX_NAME);
 	switch (WaitForSingleObject(mutex, INFINITE)){
 		case WAIT_OBJECT_0: {
-			if (make_subprocess(entrypoint, parameter, process) != 0){
+			if (make_subprocess(entrypoint, parameter, process, sharedmemoryp) != 0){
 				return YUNOPROCESS_ERROR;
 			}
 			if (ReleaseMutex(mutex) == 0){

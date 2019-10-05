@@ -3,7 +3,7 @@
 
 ![](https://img.shields.io/badge/License-MIT-green)
 ![](https://img.shields.io/badge/Windows-OK-blue)
-![](https://img.shields.io/badge/Linux-X-red)
+![](https://img.shields.io/badge/Linux-OK%3f-yellow)
 ![](https://img.shields.io/badge/Mac-X-red)
 
 Yuno は Windows/Linux でマルチプロセシング・マルチスレッディング・ファイルIOなどの OS 間での差異を抽象化してくれるライブラリです。
@@ -51,6 +51,7 @@ Yuno が提供している機能の紹介をしています。
 * [MultiThreading](README_MULTITHREADING.md)
 * [Mutex](README_MUTEX.md)
 * [Semaphore](README_SEMAPHORE.md)
+* [Shared Memory](README_SHARED_MEMORY.md)
 * [Time](README_TIME.md)
 
 ## Installation
@@ -71,9 +72,9 @@ $ make test target=windows
 ## TODO
 
 * 現在のバージョンではビルドに素の makefile を使用していますが、将来的には autoconf かそれに準ずるビルド方式を採用する予定です。
-* 現在のバージョンでは Windows のみを対応していますが、Windows 版の機能がある程度充実してきたら Linux 版も実装していく予定です。
-* ごく稀に発現する Windows でのマルチプロセシングでの奇妙な振る舞い(おそらくメモリのコピーの失敗によるものと推定)の解決方法を解明し修正可能であれば修正したい。
+* ごく稀に発現する Windows でのマルチプロセシングでの奇妙な振る舞い(おそらくメモリのコピーの失敗によるものと推定)の解決方法を解明し修正可能であれば修正したいです。
   ただしこのライブラリを趣味で使う分にはあまり問題にはならないので優先度はかなり低いです。
+* マルチプロセスで共有メモリを利用した場合に、稀にプロセスの制御がおかしくなる不具合があるので、原因を見つけ次第解決したいです。
 
 ## License 
 

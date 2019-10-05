@@ -1,0 +1,5 @@
+#include "src/test-calculate-yunoallocator-size.h"
+#include "src/test-calculate-yunoallocator-size-by-request.h"
+#include "src/test-allocate-yunoallocator.h"
+#include "src/test-free-yunoallocatorp.h"
+#include "src/test-yunoallocator-allocated-addressp.h"
