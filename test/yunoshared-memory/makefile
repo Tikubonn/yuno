@@ -1,5 +1,6 @@
 
 export CFLAGS += -I$(CURDIR) -L$(CURDIR) -lyuno
+export LD_LIBRARY_PATH += $(CURDIR)
 
 ifeq ($(target), windows)
 executefile=yunoshared-memory.exe
@@ -15,28 +16,20 @@ test: .always
 	gdb $(executefile) --batch --eval-command=run --quiet
 
 clean: .always
-	rm -f compiled/main.o $(yunolib)
+	rm -f compiled/main.o $(YUNODLL)
 	rm -f compiled/test-allocate-yunoshared-memory.o
 
-ifeq ($(target), windows)
-yunolib=yuno.dll
-else
-ifeq ($(target), linux)
-yunolib=yuno.so
-else
-endif
-endif
+$(YUNODLL): $(rootdir)/dist/$(YUNODLL)
+	cp $(rootdir)/dist/$(YUNODLL) $(YUNODLL)
 
-$(yunolib): $(rootdir)/dist/$(yunolib)
-	cp $(rootdir)/dist/$(yunolib) $(yunolib)
-
-compiled/main.o: src/main.c $(yunolib)
+compiled/main.o: src/main.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/main.c -o compiled/main.o
 
-compiled/test-allocate-yunoshared-memory.o: src/test-allocate-yunoshared-memory.c $(yunolib)
+compiled/test-allocate-yunoshared-memory.o: src/test-allocate-yunoshared-memory.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-allocate-yunoshared-memory.c -o compiled/test-allocate-yunoshared-memory.o
 
-$(executefile): compiled/main.o compiled/test-allocate-yunoshared-memory.o $(yunolib)
+$(executefile): compiled/main.o compiled/test-allocate-yunoshared-memory.o $(YUNODLL)
 	gcc $(CFLAGS) compiled/main.o compiled/test-allocate-yunoshared-memory.o -o $(executefile)
 
 .always:
+

@@ -25,4 +25,6 @@ void test_make_yunopipe (){
 		test_equal_string(TEST_MESSAGE, buffer);
 	}
 	test(close_yunofile(input) == YUNOFILE_SUCCESS);
+  test(free_yunofile(input) == YUNOFILE_SUCCESS);
+  test(free_yunofile(output) == YUNOFILE_SUCCESS);
 }

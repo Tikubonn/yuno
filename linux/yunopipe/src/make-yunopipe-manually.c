@@ -1,7 +1,7 @@
 #include <yuno.private>
 #include <unistd.h>
 
-yunopipe_status __yunocall make_yunopipe (yunofile *inputp, yunofile *outputp){
+yunopipe_status __yunocall make_yunopipe_manually (yunofile *inputp, yunofile *outputp){
   int pipefds[2];
   if (pipe(pipefds) == -1){
     return YUNOPIPE_ERROR;

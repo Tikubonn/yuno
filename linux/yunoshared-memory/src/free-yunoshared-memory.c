@@ -21,7 +21,7 @@ yunoshared_memory_status __yunocall free_yunoshared_memory (void *address, size_
 	yunoshared_memory *prevmemory = NULL;
 	yunoshared_memory *memory = global_yunoshared_memory;
 	while (memory != NULL){
-		if (yunoallocator_allocated_memoryp(address, &(memory->allocator)) == true){
+		if (yunoallocator_allocated_addressp(address, &(memory->allocator)) == true){
 			if (free_yunoallocator(address, size, &(memory->allocator)) != YUNOALLOCATOR_SUCCESS){
 				return YUNOSHARED_MEMORY_ERROR;
 			}

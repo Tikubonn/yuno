@@ -3,7 +3,7 @@
 #include <time.h>
 #include <errno.h>
 
-void copy_from_buffer (void *sequence, yunosize size, yunofile_buffer *buffer){
+static void copy_from_buffer (void *sequence, yunosize size, yunofile_buffer *buffer){
   void *bufferseq = yunofile_buffer_array(buffer);
   for (yunosize index = 0; index < size; index++){
     ((char*)sequence)[index] = 
@@ -45,6 +45,7 @@ yunofile_status __yunocall wait_read_yunofile (void *sequence, yunofile_wait_mod
         if (readsize < 0){
           return YUNOFILE_ERROR;
         }
+        copy_from_buffer(sequence, readsize, &(file->buffer));
         file->requeststatus = YUNOFILE_FREE;
         file->asyncseek += readsize;
         *readsizep = readsize;

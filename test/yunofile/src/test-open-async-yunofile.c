@@ -2,7 +2,6 @@
 #include <yuno.h>
 
 #define TEST_MESSAGE "this is a test message."
-#define LENGTH(string) (sizeof(string) -1)
 
 void test_open_async_yunofile (){
 	yunofile *file = open_async_yunofile("test.txt", YUNOFILE_READABLE | YUNOFILE_WRITABLE, 1024);
@@ -11,9 +10,9 @@ void test_open_async_yunofile (){
 	test(yunofile_writablep(file) == true);
 	// write
 	{
-		for (yunosize offset = 0; offset < LENGTH(TEST_MESSAGE);){
+		for (yunosize offset = 0; offset < sizeof(TEST_MESSAGE);){
 			yunosize wrotesize;
-			test(request_write_yunofile(TEST_MESSAGE + offset, LENGTH(TEST_MESSAGE) - offset, file) == YUNOFILE_SUCCESS);
+			test(request_write_yunofile(TEST_MESSAGE + offset, sizeof(TEST_MESSAGE) - offset, file) == YUNOFILE_SUCCESS);
 			test(wait_write_yunofile(YUNOFILE_FOREVER, file, &wrotesize) == YUNOFILE_SUCCESS);
 			offset += wrotesize;
 		}

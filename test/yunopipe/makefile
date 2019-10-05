@@ -1,5 +1,6 @@
 
 export CFLAGS += -I$(CURDIR) -L$(CURDIR) -lyuno
+export LD_LIBRARY_PATH += $(CURDIR)
 
 ifeq ($(target), windows)
 executefile=yunopipe.exe
@@ -19,28 +20,20 @@ clean: .always
 	rm -f compiled/test-make-yunopipe.o
 	rm -f compiled/test-make-yunopipe2.o
 
-ifeq ($(target), windows)
-yunolib=yuno.dll
-else
-ifeq ($(target), linux)
-yunolib=yuno.so
-else
-endif
-endif
+$(YUNODLL): $(rootdir)/dist/$(YUNODLL)
+	cp $(rootdir)/dist/$(YUNODLL) $(YUNODLL)
 
-$(yunolib): $(rootdir)/dist/$(yunolib)
-	cp $(rootdir)/dist/$(yunolib) $(yunolib)
-
-compiled/main.o: src/main.c $(yunolib)
+compiled/main.o: src/main.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/main.c -o compiled/main.o
 
-compiled/test-make-yunopipe.o: src/test-make-yunopipe.c $(yunolib)
+compiled/test-make-yunopipe.o: src/test-make-yunopipe.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-make-yunopipe.c -o compiled/test-make-yunopipe.o
 
-compiled/test-make-yunopipe2.o: src/test-make-yunopipe2.c $(yunolib)
+compiled/test-make-yunopipe2.o: src/test-make-yunopipe2.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-make-yunopipe2.c -o compiled/test-make-yunopipe2.o
 
-$(executefile): compiled/main.o compiled/test-make-yunopipe.o compiled/test-make-yunopipe2.o $(yunolib)
+$(executefile): compiled/main.o compiled/test-make-yunopipe.o compiled/test-make-yunopipe2.o $(YUNODLL)
 	gcc $(CFLAGS) compiled/main.o compiled/test-make-yunopipe.o compiled/test-make-yunopipe2.o -o $(executefile)
 
 .always:
+

@@ -42,7 +42,7 @@ static int extend_yunoshared_memory (size_t requestsize){
 	return 0;
 }
 
-typedef struct try_allocate_status {
+typedef enum try_allocate_status {
 	TRY_ALLOCATE_SUCCESS,
 	TRY_ALLOCATE_ERROR,
 	TRY_ALLOCATE_NOT_ENOUGH_MEMORY

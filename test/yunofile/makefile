@@ -1,5 +1,6 @@
 
 export CFLAGS += -I$(CURDIR) -L$(CURDIR) -lyuno
+export LD_LIBRARY_PATH += $(CURDIR)
 
 ifeq ($(target), windows)
 executefile=yunofile.exe
@@ -20,31 +21,22 @@ clean: .always
 	rm -f compiled/test-open-async-yunofile.o
 	rm -f compiled/test-open-async-yunofile2.o
 
-ifeq ($(target), windows)
-yunolib=yuno.dll
-else
-ifeq ($(target), linux)
-yunolib=yuno.so
-else
-endif
-endif
+$(YUNODLL): $(rootdir)/dist/$(YUNODLL)
+	cp $(rootdir)/dist/$(YUNODLL) $(YUNODLL)
 
-$(yunolib): $(rootdir)/dist/$(yunolib)
-	cp $(rootdir)/dist/$(yunolib) $(yunolib)
-
-compiled/main.o: src/main.c $(yunolib)
+compiled/main.o: src/main.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/main.c -o compiled/main.o
 
-compiled/test-open-yunofile.o: src/test-open-yunofile.c $(yunolib)
+compiled/test-open-yunofile.o: src/test-open-yunofile.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-open-yunofile.c -o compiled/test-open-yunofile.o
 
-compiled/test-open-async-yunofile.o: src/test-open-async-yunofile.c $(yunolib)
+compiled/test-open-async-yunofile.o: src/test-open-async-yunofile.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-open-async-yunofile.c -o compiled/test-open-async-yunofile.o
 
-compiled/test-open-async-yunofile2.o: src/test-open-async-yunofile2.c $(yunolib)
+compiled/test-open-async-yunofile2.o: src/test-open-async-yunofile2.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-open-async-yunofile2.c -o compiled/test-open-async-yunofile2.o
 
-$(executefile): compiled/main.o compiled/test-open-yunofile.o compiled/test-open-async-yunofile.o compiled/test-open-async-yunofile2.o $(yunolib)
+$(executefile): compiled/main.o compiled/test-open-yunofile.o compiled/test-open-async-yunofile.o compiled/test-open-async-yunofile2.o $(YUNODLL)
 	gcc $(CFLAGS) compiled/main.o compiled/test-open-yunofile.o compiled/test-open-async-yunofile.o compiled/test-open-async-yunofile2.o -o $(executefile)
 
 .always:

@@ -3,7 +3,7 @@
 
 ![](https://img.shields.io/badge/License-MIT-green)
 ![](https://img.shields.io/badge/Windows-OK-blue)
-![](https://img.shields.io/badge/Linux-OK%3f-yellow)
+![](https://img.shields.io/badge/Linux-OK-blue)
 ![](https://img.shields.io/badge/Mac-X-red)
 
 Yuno は Windows/Linux でマルチプロセシング・マルチスレッディング・ファイルIOなどの OS 間での差異を抽象化してくれるライブラリです。

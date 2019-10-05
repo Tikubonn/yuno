@@ -1,5 +1,6 @@
 
 export CFLAGS += -I$(CURDIR) -L$(CURDIR) -lyuno
+export LD_LIBRARY_PATH += $(CURDIR)
 
 ifeq ($(target), windows)
 executefile=yunomutex.exe
@@ -19,28 +20,19 @@ clean:
 	rm -f compiled/test-make-yunomutex2.o
 	rm -f compiled/main.o
 
-ifeq ($(target), windows)
-yunolib=yuno.dll
-else
-ifeq ($(target), linux)
-yunolib=yuno.so
-else
-endif
-endif
+$(YUNODLL): $(rootdir)/dist/$(YUNODLL)
+	cp $(rootdir)/dist/$(YUNODLL) $(YUNODLL)
 
-$(yunolib): $(rootdir)/dist/$(yunolib)
-	cp $(rootdir)/dist/$(yunolib) $(yunolib)
-
-compiled/test-make-yunomutex.o: src/test-make-yunomutex.c $(yunolib)
+compiled/test-make-yunomutex.o: src/test-make-yunomutex.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-make-yunomutex.c -o compiled/test-make-yunomutex.o
 
-compiled/test-make-yunomutex2.o: src/test-make-yunomutex2.c $(yunolib)
+compiled/test-make-yunomutex2.o: src/test-make-yunomutex2.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/test-make-yunomutex2.c -o compiled/test-make-yunomutex2.o
 
-compiled/main.o: src/main.c $(yunolib)
+compiled/main.o: src/main.c $(YUNODLL)
 	gcc $(CFLAGS) -c src/main.c -o compiled/main.o
 
-$(executefile): compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/main.o $(yunolib)
+$(executefile): compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/main.o $(YUNODLL)
 	gcc $(CFLAGS) compiled/test-make-yunomutex.o compiled/test-make-yunomutex2.o compiled/main.o -o $(executefile)
 
 .always:

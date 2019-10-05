@@ -4,11 +4,12 @@
 
 void test_set_get_yunobitarray (){
 	yunobitarray array;
-	yunobyte arrayseq[2]; // 16
+	yunobyte arrayseq[2] = { 0 }; // 16
 	init_yunobitarray(arrayseq, sizeof(arrayseq), &array);
 	test(set_yunobitarray(1, 0, &array) == 0);
 	test(set_yunobitarray(1, 2, &array) == 0);
 	test(set_yunobitarray(1, 4, &array) == 0);
+	test(set_yunobitarray(1, 6, &array) == 0);
 	test(set_yunobitarray(1, 8, &array) == 0);
 	test(set_yunobitarray(1, 10, &array) == 0);
 	test(set_yunobitarray(1, 12, &array) == 0);

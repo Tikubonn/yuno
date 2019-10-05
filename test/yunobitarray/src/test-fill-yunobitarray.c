@@ -4,7 +4,7 @@
 
 void test_fill_yunobitarray (){
 	yunobitarray array;
-	yunobyte arrayseq[2]; // 16
+	yunobyte arrayseq[2] = { 0 }; // 16
 	init_yunobitarray(arrayseq, sizeof(arrayseq), &array);
 	test(fill_yunobitarray(1, 0, 8, &array) == 0);
 	for (size_t index = 0; index < 8; index++){

@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <sys/resource.h>
+#include <sys/wait.h>
 #include <signal.h>
 
 static pid_t __gettid (){
@@ -14,7 +15,7 @@ static pid_t __gettid (){
 
 static int __wait_thread (){
   pid_t threadid = __gettid();
-  if (kill(threadid, SIGSTOP) == -1){
+  if (kill(threadid, SIGSTOP) != 0){
     return 1;
   }
   return 0;
@@ -66,7 +67,23 @@ yunothread_status __yunocall make_yunothread_manually (yunothread_entry_point en
     free(childstack);
     return YUNOTHREAD_ERROR;
   }
-  thread->processid = processid;
-  return YUNOTHREAD_SUCCESS;
+  int status;
+  pid_t pid2 = waitpid(processid, &status, WUNTRACED);
+  if (pid2 < 0){
+    return YUNOTHREAD_ERROR;
+  }
+  else
+  if (pid2 == 0){
+    return YUNOTHREAD_ERROR;
+  }
+  else {
+    if (WIFSTOPPED(status)){
+      thread->processid = processid;
+      thread->exitedp = false;
+      thread->exitcode = 0; //! can be undefined.
+      return YUNOTHREAD_SUCCESS;
+    }
+    return YUNOTHREAD_ERROR;
+  }
 }
 

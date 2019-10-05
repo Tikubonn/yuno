@@ -3,23 +3,10 @@
 #include <sys/wait.h>
 
 yunoprocess_status __yunocall get_yunoprocess_exit_code (yunoprocess *process, int *exitcodep){
-  int status;
-  pid_t pid = waitpid(process->processid, &status, WNOHANG);
-  if (pid == -1){
-    return YUNOPROCESS_ERROR;
+  if (process->exitedp == true){
+    *exitcodep = process->exitcode;
+    return YUNOPROCESS_SUCCESS;
   }
-  else
-  if (pid == 0){
-    return YUNOPROCESS_BUSY;
-  }
-  else {
-    if (WIFEXITED(status)){
-      *exitcodep = WEXITSTATUS(status);
-      return YUNOPROCESS_SUCCESS;
-    }
-    else {
-      return YUNOPROCESS_BUSY;
-    }
-  }
+  return YUNOPROCESS_BUSY;
 }
 

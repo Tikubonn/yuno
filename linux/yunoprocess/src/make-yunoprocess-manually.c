@@ -1,19 +1,20 @@
 #include <yuno.private>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
 
-static int __wait_process (){
+static int wait_process (){
   pid_t pid = getpid();
-  if (kill(pid, SIGSTOP) == -1){
+  if (kill(pid, SIGSTOP) != 0){
     return 1;
   }
   return 0;
 }
 
 static void __subprocess_main (yunoprocess *process){
-  if (__wait_process() != 0){
-    _exit(1); // exit process!
+  if (wait_process()){
+    _exit(1); // abort process!
   }
   int exitcode = process->entrypoint(process->parameter);
   _exit(exitcode); // exit process!
@@ -32,8 +33,24 @@ yunoprocess_status __yunocall make_yunoprocess_manually (yunoprocess_entry_point
     return YUNOPROCESS_ERROR;
   }
   else {
-    process->processid = pid;
-    return YUNOPROCESS_SUCCESS;
+    int status;
+    pid_t pid2 = waitpid(pid, &status, WUNTRACED);
+    if (pid2 < 0){
+      return YUNOPROCESS_ERROR;
+    }
+    else
+    if (pid2 == 0){
+      return YUNOPROCESS_ERROR;
+    }
+    else {
+      if (WIFSTOPPED(status)){
+        process->processid = pid;
+        process->exitedp = false;
+        process->exitcode = 0; //! can be undefined.
+        return YUNOPROCESS_SUCCESS;
+      }
+      return YUNOPROCESS_ERROR;
+    }
   }
 }
 

@@ -1,15 +1,6 @@
 
 CFLAGS += -I$(CURDIR)
 
-ifeq ($(target), windows)
-yunolib=yuno.dll
-else
-ifeq ($(target), linux)
-yunolib=yuno.so
-else
-endif
-endif
-
 usage: .always
 	@echo "Usage:"
 	@echo "  make clean     remove unnecessary files."

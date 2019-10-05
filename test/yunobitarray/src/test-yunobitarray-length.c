@@ -4,7 +4,7 @@
 
 void test_yunobitarray_length (){
 	yunobitarray array;
-	yunobyte arrayseq[2]; // 16
+	yunobyte arrayseq[2] = { 0 }; // 16
 	init_yunobitarray(arrayseq, sizeof(arrayseq), &array);
 	test(yunobitarray_length(&array) == 16);
 }
