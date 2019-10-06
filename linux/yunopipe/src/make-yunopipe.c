@@ -21,7 +21,7 @@ yunopipe_status __yunocall make_yunopipe (
 		if (inputbufferseq == NULL){
 			free(input);
 			free(output);
-			return NULL;
+			return YUNOPIPE_ERROR;
 		}
 	}
 	void *outputbufferseq = NULL;
@@ -31,7 +31,7 @@ yunopipe_status __yunocall make_yunopipe (
 			free(input);
 			free(output);
 			free(inputbufferseq);
-			return NULL;
+			return YUNOPIPE_ERROR;
 		}
 	}
   if (make_yunopipe_manually(
