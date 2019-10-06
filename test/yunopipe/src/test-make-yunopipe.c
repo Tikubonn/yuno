@@ -5,7 +5,7 @@
 
 void test_make_yunopipe (){
 	yunofile *input, *output;
-	test(make_yunopipe(&input, &output) == YUNOPIPE_SUCCESS);
+	test(make_yunopipe(0, 0, &input, &output) == YUNOPIPE_SUCCESS);
 	for (yunosize woffset = 0; woffset < sizeof(TEST_MESSAGE);){
 		yunosize wrotesize;
 		test(write_yunofile(TEST_MESSAGE + woffset, sizeof(TEST_MESSAGE) - woffset, output, &wrotesize) == YUNOFILE_SUCCESS);

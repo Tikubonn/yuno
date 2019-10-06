@@ -1,12 +1,12 @@
 #include <yuno.private>
 #include <windows.h>
 
-yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_where where, yunofile *file, yunosize *newseekp){
+yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_whence whence, yunofile *file, yunosize *newseekp){
 	if (file->asyncp == true){
 		if (file->requeststatus != YUNOFILE_FREE){
 			return YUNOFILE_BUSY;
 		}
-		switch (where){
+		switch (whence){
 			case YUNOFILE_BEGIN: {
 				if (seek < 0){
 					return YUNOFILE_ERROR;
@@ -42,7 +42,7 @@ yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_where where, 
 			return YUNOFILE_BUSY;
 		}
 		DWORD whe;
-		switch (where){
+		switch (whence){
 			case YUNOFILE_BEGIN:
 				whe = FILE_BEGIN;
 				break;

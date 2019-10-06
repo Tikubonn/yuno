@@ -1,9 +1,10 @@
 
 # Pipe 
 
-Yuno はパイプを使ったプロセス間通信にも対応しています。  
+Yuno はパイプを使ったプロセス間通信にも対応しています。
+
 Yuno のパイプは Unix のように書き込み用と読み込み用の端点を作成し、
-プロセスごとに手動で不必要な端点を閉じる形式で利用します。
+プロセスごとに手動で不要な端点を閉じる方法で利用します。
 下記の例ではパイプからの入力を標準出力に出力するサブプロセスを作成し、
 そのプロセスにパイプ経由で簡単なメッセージを送信しています。
 
@@ -36,7 +37,7 @@ static int __stdcall example (void *parameter){
 int main (){
   yunofile *input;
   yunofile *output;
-  make_yunopipe(&input, &output);
+  make_yunopipe(0, 0, &input, &output);
   pipe pip;
   pip.input = input;
   pip.output = output;
@@ -56,11 +57,23 @@ int main (){
 ## make_yunopipe_manually
 
 ```c
-yunopipe_status make_yunopipe_manually (yunofile *inputfile, yunofile *outputfile);
+yunopipe_status make_yunopipe_manually (
+  void *inputfilebufferseq,
+  yunosize inputfilebuffersize,
+  void *outputfilebufferseq,
+  yunosize outputfilebuffersize,
+  yunofile *inputfile,
+  yunofile *outputfile
+);
 ```
 
 ## make_yunopipe
 
 ```c
-yunopipe_status make_yunopipe (yunofile **inputfilep, yunofile **outputfilep);
+yunopipe_status make_yunopipe (
+  yunosize inputfilebuffersize,
+  yunosize outputfilebuffersize,
+  yunofile **inputfilep,
+  yunofile **outputfilep
+);
 ```

@@ -65,27 +65,30 @@ static try_allocate_status try_allocate (size_t size, void **newaddrp){
 }
 
 void __yunocall *allocate_yunoshared_memory (size_t size){
-	void *newaddr;
-	switch (try_allocate(size, &newaddr)){
-		case TRY_ALLOCATE_SUCCESS: {
-			return newaddr;
-		}
-		case TRY_ALLOCATE_NOT_ENOUGH_MEMORY: {
-			if (extend_yunoshared_memory(size) != 0){
-				return NULL;
+	if (0 < size){
+		void *newaddr;
+		switch (try_allocate(size, &newaddr)){
+			case TRY_ALLOCATE_SUCCESS: {
+				return newaddr;
 			}
-			void *newaddr;
-			switch (try_allocate(size, &newaddr)){
-				case TRY_ALLOCATE_SUCCESS: {
-					return newaddr;
-				}
-				default: {
+			case TRY_ALLOCATE_NOT_ENOUGH_MEMORY: {
+				if (extend_yunoshared_memory(size) != 0){
 					return NULL;
 				}
+				void *newaddr;
+				switch (try_allocate(size, &newaddr)){
+					case TRY_ALLOCATE_SUCCESS: {
+						return newaddr;
+					}
+					default: {
+						return NULL;
+					}
+				}
+			}
+			default: {
+				return NULL;
 			}
 		}
-		default: {
-			return NULL;
-		}
 	}
+	return NULL;
 }

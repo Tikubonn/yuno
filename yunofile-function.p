@@ -11,7 +11,7 @@ extern yunofile_status __yunocall wait_write_yunofile (yunofile_wait_mode, yunof
 extern yunofile_status __yunocall read_yunofile (void*, yunosize, yunofile*, yunosize*);
 extern yunofile_status __yunocall request_read_yunofile (yunosize, yunofile*);
 extern yunofile_status __yunocall wait_read_yunofile (void*, yunofile_wait_mode, yunofile*, yunosize*);
-extern yunofile_status __yunocall seek_yunofile (yunossize, yunofile_where, yunofile*, yunosize*);
+extern yunofile_status __yunocall seek_yunofile (yunossize, yunofile_whence, yunofile*, yunosize*);
 extern yunofile_status __yunocall tell_yunofile (yunofile*, yunosize*);
 extern yunofile_status __yunocall close_yunofile (yunofile*);
 extern yunofile_status __yunocall free_yunofile (yunofile*);

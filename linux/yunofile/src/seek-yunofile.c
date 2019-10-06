@@ -12,12 +12,12 @@ static int __get_file_size (int fd, off_t *sizep){
   return 0;
 }
 
-yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_where where, yunofile *file, yunosize *newseekp){
+yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_whence whence, yunofile *file, yunosize *newseekp){
   if (file->asyncp == true){
     if (file->requeststatus != YUNOFILE_FREE){
       return YUNOFILE_BUSY;
     }
-    switch (where){
+    switch (whence){
       case YUNOFILE_BEGIN: {
         if (seek < 0){
           return YUNOFILE_ERROR;
@@ -57,21 +57,21 @@ yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_where where, 
     if (file->requeststatus != YUNOFILE_FREE){
       return YUNOFILE_BUSY;
     }
-    int whence;
-    switch (where){
+    int whe;
+    switch (whence){
       case YUNOFILE_BEGIN:
-        whence = SEEK_SET;
+        whe = SEEK_SET;
         break;
       case YUNOFILE_CURRENT:
-        whence = SEEK_CUR;
+        whe = SEEK_CUR;
         break;
       case YUNOFILE_END:
-        whence = SEEK_END;
+        whe = SEEK_END;
         break;
       default:
         return YUNOFILE_ERROR;
     }
-    off_t newseek = lseek(file->fd, seek, whence);
+    off_t newseek = lseek(file->fd, seek, whe);
     if (newseek == -1){
       return YUNOFILE_ERROR;
     }

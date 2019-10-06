@@ -7,6 +7,46 @@
 */
 
 int parse_yunofile_mode (int mode, DWORD *accessp, DWORD *sharep, DWORD *creationp){
+  switch (mode){
+		case YUNOFILE_READABLE: 
+			*accessp = GENERIC_READ;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = OPEN_EXISTING;
+			return 0;
+		case YUNOFILE_WRITABLE: 
+			*accessp = GENERIC_WRITE;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = OPEN_ALWAYS;
+			return 0;
+		case YUNOFILE_WRITABLE | YUNOFILE_TRUNCATE: 
+			*accessp = GENERIC_WRITE;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = CREATE_ALWAYS;
+			return 0;
+		case YUNOFILE_WRITABLE | YUNOFILE_APPEND: 
+			*accessp = GENERIC_WRITE;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = OPEN_ALWAYS;
+			return 0;
+		case YUNOFILE_READABLE | YUNOFILE_WRITABLE: 
+			*accessp = GENERIC_READ | GENERIC_WRITE;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = OPEN_ALWAYS;
+			return 0;
+		case YUNOFILE_READABLE | YUNOFILE_WRITABLE | YUNOFILE_TRUNCATE: 
+			*accessp = GENERIC_READ | GENERIC_WRITE;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = CREATE_ALWAYS;
+			return 0;
+		case YUNOFILE_READABLE | YUNOFILE_WRITABLE | YUNOFILE_APPEND: 
+			*accessp = GENERIC_READ | GENERIC_WRITE;
+			*sharep = FILE_SHARE_READ | FILE_SHARE_WRITE;
+			*creationp = OPEN_ALWAYS;
+			return 0;
+    default:
+      return 1; // unknown combination!
+  }
+  /*
 	switch (mode){
 		case YUNOFILE_READABLE: 
 			*accessp = GENERIC_READ;
@@ -36,4 +76,5 @@ int parse_yunofile_mode (int mode, DWORD *accessp, DWORD *sharep, DWORD *creatio
 		default:
 			return 1; // unknown combination!
 	}
+  */
 }

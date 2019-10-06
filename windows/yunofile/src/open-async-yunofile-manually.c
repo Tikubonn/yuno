@@ -21,7 +21,7 @@ yunofile_status __yunocall open_async_yunofile_manually (const char *filename, i
 		}
 	}
 	yunosize asyncseek = 0;
-	if (mode & YUNOFILE_APPENDABLE){
+	if (mode & YUNOFILE_APPEND){
 		LARGE_INTEGER filesize;
 		if (GetFileSizeEx(handle, &filesize) == 0){
 			return YUNOFILE_ERROR;

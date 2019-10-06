@@ -27,7 +27,7 @@ extern yunofile_status __yunocall wait_write_yunofile (yunofile_wait_mode, yunof
 extern yunofile_status __yunocall read_yunofile (void*, yunosize, yunofile*, yunosize*);
 extern yunofile_status __yunocall request_read_yunofile (yunosize, yunofile*);
 extern yunofile_status __yunocall wait_read_yunofile (void*, yunofile_wait_mode, yunofile*, yunosize*);
-extern yunofile_status __yunocall seek_yunofile (yunossize, yunofile_where, yunofile*, yunosize*);
+extern yunofile_status __yunocall seek_yunofile (yunossize, yunofile_whence, yunofile*, yunosize*);
 extern yunofile_status __yunocall tell_yunofile (yunofile*, yunosize*);
 extern yunofile_status __yunocall close_yunofile (yunofile*);
 extern yunofile_status __yunocall free_yunofile (yunofile*);
@@ -60,8 +60,8 @@ extern yunosemaphore_status __yunocall free_yunosemaphore (yunosemaphore*);
 
 extern yunosleep_status __yunocall yunosleep (int);
 
-extern yunopipe_status __yunocall make_yunopipe_manually (yunofile*, yunofile*);
-extern yunopipe_status __yunocall make_yunopipe (yunofile**, yunofile**);
+extern yunopipe_status __yunocall make_yunopipe_manually (void*, yunosize, void*, yunosize, yunofile*, yunofile*);
+extern yunopipe_status __yunocall make_yunopipe (yunosize, yunosize, yunofile**, yunofile**);
 
 //extern void __yunocall *allocate_yunoshared_memory (size_t);
 //extern yunoshared_memory_status __yunocall free_yunoshared_memory (void*, size_t);

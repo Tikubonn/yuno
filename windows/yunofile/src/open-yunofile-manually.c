@@ -20,7 +20,7 @@ yunofile_status __yunocall open_yunofile_manually (const char *filename, int mod
 				return YUNOFILE_ERROR;
 		}
 	}
-	if (mode & YUNOFILE_APPENDABLE){
+	if (mode & YUNOFILE_APPEND){
 		LARGE_INTEGER zero;
 		zero.QuadPart = 0;
 		if (SetFilePointerEx(handle, zero, NULL, FILE_END) == 0){

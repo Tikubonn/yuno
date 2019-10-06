@@ -36,9 +36,9 @@ static int __yunocall example (void *parameter){
 
 void test_make_yunopipe2 (){
 	yunofile *inread, *inwrite;
-	test(make_yunopipe(&inread, &inwrite) == YUNOPIPE_SUCCESS);
+	test(make_yunopipe(0, 0, &inread, &inwrite) == YUNOPIPE_SUCCESS);
 	yunofile *outread, *outwrite;
-	test(make_yunopipe(&outread, &outwrite) == YUNOPIPE_SUCCESS);
+	test(make_yunopipe(0, 0, &outread, &outwrite) == YUNOPIPE_SUCCESS);
 	somepipes pip;
 	pip.inread = inread;
 	pip.inwrite = inwrite;

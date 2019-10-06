@@ -1,11 +1,13 @@
 
 # MultiProcessing 
 
-Yuno はマルチプロセシングに対応しています。  
+Yuno はマルチプロセシングに対応しています。
+
 Yuno のマルチプロセシングの関数は Linux の fork のように、
 現在実行しているプロセスを複製し、それぞれが並行に処理を実行します。
 子プロセスは親プロセスのメモリを複製しただけの別プロセスなので、双方のメモリ上にあるデータを書き換えたとしても、互いに影響を与えることはありません。
-プロセス間での通信を行いたい場合には Yuno が提供している [Pipe](README_PIPE.md) 機能を使用することを検討してもいいかもしれません。
+
+プロセス間での通信を行いたい場合には Yuno が提供している [Pipe](README_PIPE.md) や [Shared Memory](README_SHARED_MEMORY.md) の機能を使用することを検討してもいいかもしれません。
 Windows では fork のような概念はありませんが、Yuno はライブラリ側で工夫することによって似たような機能を再現しています。
 詳細はライブラリのソースコードを直接読んでください。
 
@@ -41,7 +43,7 @@ int main (){
 // typedef yunoprocess;
 ```
 
-yunoprocess 型は Yuno で作成されたサブプロセスを表す型です。  
+yunoprocess 型は Yuno で作成されたサブプロセスを表す型です。
 これはビルドされた環境によって定義が異なります。
 
 ## yunoprocess_entry_point 
@@ -50,8 +52,8 @@ yunoprocess 型は Yuno で作成されたサブプロセスを表す型です�
 typedef int __stdcall (*yunoprocess_entry_point)(void*);
 ```
 
-yunoprocess_entry_point 型は Yuno で作成されるサブプロセス上で実行される関数の型です。  
-この型は返り値に整数を要求しますが、この値がサブプロセスの終了コードになります。
+yunoprocess_entry_point 型は Yuno で作成されるサブプロセス上で実行される関数の型です。
+この型が要求する返り値がサブプロセスの終了コードになります。
 
 ## make_yunoprocess_manually
 
