@@ -58,22 +58,41 @@ int main (){
 
 ```c
 yunopipe_status make_yunopipe_manually (
-  void *inputfilebufferseq,
-  yunosize inputfilebuffersize,
-  void *outputfilebufferseq,
-  yunosize outputfilebuffersize,
+  void *inputbufferseq,
+  yunosize inputbuffersize,
+  void *outputbufferseq,
+  yunosize outputbuffersize,
   yunofile *inputfile,
   yunofile *outputfile
 );
 ```
 
+この関数は新しくパイプを作成し、作成した読み込み用と書き込み用の端点をそれぞれ `inputfile` と `outputfile` に保存します。
+引数 `inputbufferseq` と `inputbuffersize` はそれぞれ非同期読み込み用に使われる内部バッファのアドレスとその長さです。
+もし非同期読み込みを行わないのであればそれぞれ **NULL** と **0** を与えてください。
+引数 `outputbufferseq` と `outputbuffersize` はそれぞれ非同期書き込み用に使われる内部バッファのアドレスとその長さです。
+もし非同期書き込みを行わないのであればそれぞれ **NULL** と **0** を与えてください。
+作成に成功した場合にこの関数は **YUNOPIPE_SUCCESS** を返します。
+失敗した場合にこの関数は **YUNOPIPE_ERROR** を返します。
+
 ## make_yunopipe
 
 ```c
 yunopipe_status make_yunopipe (
-  yunosize inputfilebuffersize,
-  yunosize outputfilebuffersize,
+  yunosize inputbuffersize,
+  yunosize outputbuffersize,
   yunofile **inputfilep,
   yunofile **outputfilep
 );
 ```
+
+この関数は [make_yunopipe_manually](#make_yunopipe_manually) と同様にパイプを作成しますが、
+保存用の [yunofile](README_FILEIO.md#yunofile) と内部バッファの領域を `malloc` で動的に確保する部分が異なります。
+引数 `inputbuffersize` は非同期読み込み用に使われる内部バッファのサイズです。
+もし非同期読み込みを行わないのであれば **0** を指定してください。
+引数 `outputbuffersize` は非同期書き込み用に使われる内部バッファのサイズです。
+もし非同期書き込みを行わないのであれば **0** を指定してください。
+作成に成功した場合にこの関数は **YUNOPIPE_SUCCESS** を返します。
+失敗した場合にこの関数は **YUNOPIPE_ERROR** を返します。
+
+この関数によって動的に確保された領域は [free_yunofile](README_FILEIO.md#free_yunofile) 関数によって解放することができます。

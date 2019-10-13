@@ -40,9 +40,9 @@ ifeq ($(target), linux)
 	make linux
 else
 	@echo "Usage:"
-	@echo "	make target=[windows|linux]				 build library for target system."
-	@echo "	make clean													cleanup the intermediate file."
-	@echo "	make test target=[windows|linux]		build and run the test."
+	@echo "  make target=[windows|linux]        build library for target system."
+	@echo "  make clean                         cleanup the intermediate file."
+	@echo "  make test target=[windows|linux]   build and run the test."
 endif
 endif
 
@@ -54,7 +54,7 @@ ifeq ($(target), linux)
 	make linux-test
 else
 	@echo "Usage:"
-	@echo "	make test target=[windows|linux]		build and run the test."
+	@echo "  make test target=[windows|linux]  build and run the test."
 endif
 endif
 
