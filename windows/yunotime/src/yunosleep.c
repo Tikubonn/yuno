@@ -1,10 +1,8 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunosleep_status __yunocall yunosleep (int seconds){
-	if (seconds < 0){
-		return YUNOSLEEP_ERROR;
-	}
-	Sleep(seconds * 1000);
-	return YUNOSLEEP_SUCCESS;
+int __stdcall yunosleep (yunoseconds seconds, yunoseconds miliseconds){
+	reset_yunoerror();
+	Sleep(seconds * 1000 + miliseconds);
+	return 0;
 }

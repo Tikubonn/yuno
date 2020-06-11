@@ -1,3 +1,3 @@
+#include <stdbool.h>
 
-extern void init_yunofile (int, int, void*, yunosize, yunofile*);
-
+extern void init_yunofile (int, int, bool, void*, yunosize, yunofile*);

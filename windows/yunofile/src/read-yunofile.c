@@ -1,22 +1,43 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
+#include <stdbool.h>
 
-yunofile_status __yunocall read_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
-	if (file->asyncp == true){
-		yunofile_status status1 = request_read_yunofile(size, file);
-		if (status1 != YUNOFILE_SUCCESS){
-			return status1;
+int __stdcall read_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncstatus == YUNOFILE_FREE){
+			if (file->asyncp == true){
+				if (request_read_yunofile(size, file) != 0){
+					return 1;
+				}
+				if (wait_read_yunofile(sequence, YUNOFOREVER, file, readsizep) != 0){
+					return 1;
+				}
+				return 0;
+			}
+			else {
+				DWORD readsize;
+				if (ReadFile(file->file, sequence, size, &readsize, NULL) == 0){
+					switch (GetLastError()){
+						case ERROR_BROKEN_PIPE:
+							*readsizep = 0;
+							return 0;
+						default:
+							set_yunoerror(YUNOOS_ERROR);
+							return 1;
+					}
+				}
+				*readsizep = readsize;
+				return 0;
+			}
 		}
-		yunofile_status status2 = wait_read_yunofile(sequence, YUNOFILE_FOREVER, file, readsizep);
-		if (status2 != YUNOFILE_SUCCESS){
-			return status2;
+		else {
+			set_yunoerror(YUNOBUSY);
+			return 1;
 		}
-		return YUNOFILE_SUCCESS;
 	}
 	else {
-		if (file->requeststatus != YUNOFILE_FREE){
-			return YUNOFILE_BUSY;
-		}
-		return read_sync_yunofile(sequence, size, file, readsizep);
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }

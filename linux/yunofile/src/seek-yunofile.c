@@ -1,82 +1,64 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+#include <errno.h>
 #include <unistd.h>
 
-static int __get_file_size (int fd, off_t *sizep){
-  struct stat st;
-  if (fstat(fd, &st) == -1){
-    return 1;
-  }
-  *sizep = st.st_size;
-  return 0;
+static int seek_file (yunossize distance, yunofile_whence whence, yunofile *file, yunosize *newoffsetp){
+	reset_yunoerror();
+	int linuxwhence;
+	switch (whence){
+		case YUNOFILE_BEGIN:
+			linuxwhence = SEEK_SET;
+			break;
+		case YUNOFILE_CURRENT:
+			linuxwhence = SEEK_CUR;
+			break;
+		case YUNOFILE_END:
+			linuxwhence = SEEK_END;
+			break;
+		default:
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+	}
+	off_t offset = lseek(file->filefd, distance, linuxwhence);
+	if (offset == -1){
+		switch (errno){
+			case EINVAL:
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			default:
+				set_yunoerror(YUNOOS_ERROR);
+				return 1;
+		}
+	}
+	*newoffsetp = offset;
+	return 0;
 }
 
-yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_whence whence, yunofile *file, yunosize *newseekp){
-  if (file->asyncp == true){
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    switch (whence){
-      case YUNOFILE_BEGIN: {
-        if (seek < 0){
-          return YUNOFILE_ERROR;
-        }
-        file->asyncseek = seek;
-        *newseekp = seek;
-        return YUNOFILE_SUCCESS;
-      }
-      case YUNOFILE_CURRENT: {
-        yunossize newseek = file->asyncseek + seek;
-        if (newseek < 0){
-          return YUNOFILE_ERROR;
-        }
-        file->asyncseek = newseek;
-        *newseekp = newseek;
-        return YUNOFILE_SUCCESS;
-      }
-      case YUNOFILE_END: {
-        off_t filesize;
-        if (__get_file_size(file->fd, &filesize) != 0){
-          return YUNOFILE_ERROR;
-        }
-        yunossize newseek = filesize + seek;
-        if (newseek < 0){
-          return YUNOFILE_ERROR;
-        }
-        file->asyncseek = newseek;
-        *newseekp = newseek;
-        return YUNOFILE_SUCCESS;
-      }
-      default: {
-        return YUNOFILE_ERROR;
-      }
-    }
-  }
-  else {
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    int whe;
-    switch (whence){
-      case YUNOFILE_BEGIN:
-        whe = SEEK_SET;
-        break;
-      case YUNOFILE_CURRENT:
-        whe = SEEK_CUR;
-        break;
-      case YUNOFILE_END:
-        whe = SEEK_END;
-        break;
-      default:
-        return YUNOFILE_ERROR;
-    }
-    off_t newseek = lseek(file->fd, seek, whe);
-    if (newseek == -1){
-      return YUNOFILE_ERROR;
-    }
-    *newseekp = newseek;
-    return YUNOFILE_SUCCESS;
-  }
+int seek_yunofile (yunossize distance, yunofile_whence whence, yunofile *file, yunosize *newoffsetp){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			if (file->asyncstatus == YUNOFILE_FREE){
+				return seek_file(distance, whence, file, newoffsetp);
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
+			}
+		}
+		else {
+			if (file->asyncstatus == YUNOFILE_FREE){
+				return seek_file(distance, whence, file, newoffsetp);
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
+			}
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
 }
-

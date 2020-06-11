@@ -1,117 +1,148 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
-#include <stddef.h>
-//#include <stdio.h>//test
+#include <stdbool.h>
 
-static yunoshared_memory *make_yunoshared_memory (size_t size, size_t seqsize, size_t mapsize){
-	HANDLE heap = GetProcessHeap();
-	if (heap == NULL){
-		return NULL;
-	}
-	//printf("heap=%d\n", heap);//test
-	yunoshared_memory *memory = HeapAlloc(heap, 0, sizeof(yunoshared_memory));
-	if (memory == NULL){
-		return NULL;
-	}
-	//printf("memory=%p\n", memory);//test
-	SECURITY_ATTRIBUTES secattr;
-	secattr.nLength = sizeof(secattr);
-	secattr.lpSecurityDescriptor = NULL;
-	secattr.bInheritHandle = TRUE;
-	LARGE_INTEGER memsize;
-	memsize.QuadPart = seqsize + mapsize;
-	HANDLE filemap = CreateFileMapping(INVALID_HANDLE_VALUE, &secattr, PAGE_READWRITE, memsize.HighPart, memsize.LowPart, NULL);
-	if (filemap == NULL){
-		if (HeapFree(heap, 0, memory) == 0){
-			return NULL;
-		}
-		return NULL;
-	}
-	void *sequence = MapViewOfFile(filemap, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-	if (sequence == NULL){
-		if (CloseHandle(filemap) == 0){
-			return NULL;
-		}
-		if (HeapFree(heap, 0, memory) == 0){
-			return NULL;
-		}
-		return NULL;
-	}
-	memory->handle = filemap;
-	memory->address = sequence;
-	memory->size = size;
-	memory->seqsize = seqsize;
-	memory->mapsize = mapsize;
-	init_yunoallocator(sequence, seqsize, sequence + seqsize, mapsize, &(memory->allocator));
-	memory->next = NULL;
-	return memory;
-}
-
-static DWORD get_page_size (){
+static inline DWORD get_page_size (){
 	SYSTEM_INFO systeminfo;
 	GetSystemInfo(&systeminfo);
 	return systeminfo.dwPageSize;
 }
 
-static int extend_yunoshared_memory (size_t reqsize, yunoshared_memory **sharedmemoryp){
-	size_t size;
-	size_t seqsize;
-	size_t mapsize;
-	DWORD pagesize = get_page_size();
-	calculate_yunoallocator_size_by_request(reqsize, pagesize, &size, &seqsize, &mapsize);
-	yunoshared_memory *memory = make_yunoshared_memory(size, seqsize, mapsize);
-	if (memory == NULL){
-		return 1;
-	}
-	memory->next = *sharedmemoryp;
-	*sharedmemoryp = memory;
-	return 0;
+static inline void setup_security_attributes (SECURITY_ATTRIBUTES *secattrs){
+	secattrs->nLength = sizeof(SECURITY_ATTRIBUTES);
+	secattrs->lpSecurityDescriptor = NULL;
+	secattrs->bInheritHandle = TRUE;
 }
 
-typedef enum try_allocate_status {
-	TRY_ALLOCATE_SUCCESS,
-	TRY_ALLOCATE_ERROR,
-	TRY_ALLOCATE_NOT_ENOUGH_MEMORY
-} try_allocate_status;
+#define MIN_OFFSET 0x20000
+//#define MAX_OFFSET 0x7fffffff
+#define MAX_OFFSET 0x6fffffff
 
-static int try_allocate (size_t size, yunoshared_memory **sharedmemoryp, void **newaddrp){
-	for (yunoshared_memory *memory = *sharedmemoryp; memory != NULL; memory = memory->next){
-		void *newaddr;
-		switch (allocate_yunoallocator(size, &(memory->allocator), &newaddr)){
-			case YUNOALLOCATOR_SUCCESS: 
-				*newaddrp = newaddr;
-				return TRY_ALLOCATE_SUCCESS;
-			case YUNOALLOCATOR_NOT_ENOUGH_MEMORY:
-				break;
-			default:
-				return TRY_ALLOCATE_ERROR;
-		}
-	}
-	return TRY_ALLOCATE_NOT_ENOUGH_MEMORY;
-}
-
-void __yunocall *__allocate_yunoshared_memory (size_t size, yunoshared_memory **sharedmemoryp){
-	void *newaddr;
-	switch (try_allocate(size, sharedmemoryp, &newaddr)){
-		case TRY_ALLOCATE_SUCCESS: {
-			return newaddr;
-		}
-		case TRY_ALLOCATE_NOT_ENOUGH_MEMORY: {
-			if (extend_yunoshared_memory(size, sharedmemoryp) != 0){
-				return NULL;
-			}
-			void *newaddr;
-			switch (try_allocate(size, sharedmemoryp, &newaddr)){
-				case TRY_ALLOCATE_SUCCESS: {
-					return newaddr;
+static inline void *prepare_area (yunosize size){
+	reset_yunoerror();
+	for (void *baseaddr = (void*)MAX_OFFSET; (void*)MIN_OFFSET < baseaddr;){
+		MEMORY_BASIC_INFORMATION meminfo;
+		if (0 < VirtualQuery(baseaddr, &meminfo, sizeof(meminfo))){
+			if (meminfo.State == MEM_FREE && size <= meminfo.RegionSize){
+				void *reserved = VirtualAlloc(meminfo.BaseAddress, size, MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+				if (reserved == NULL){
+					baseaddr = meminfo.BaseAddress != (void*)0 ? meminfo.BaseAddress -1: (void*)0;
+					continue;
 				}
-				default: {
+				if (VirtualFree(reserved, 0, MEM_RELEASE) == 0){
+					set_yunoerror(YUNOOS_ERROR);
 					return NULL;
 				}
+				return reserved;
+			}
+			baseaddr = meminfo.BaseAddress != (void*)0 ? meminfo.BaseAddress -1: (void*)0;
+		}
+		else {
+			DWORD lasterror = GetLastError();
+			if (lasterror == ERROR_INVALID_PARAMETER){
+				break;
+			}
+			else {
+				set_yunoerror(YUNOOS_ERROR);
+				return NULL;
 			}
 		}
-		default: {
-			return NULL;
+	}
+	set_yunoerror(YUNONOT_ENOUGH_MEMORY);
+	return NULL;
+}
+
+static inline yunoshared_memory *make_yunoshared_memory (yunosize size, yunoshared_memory *nextmemory, yunomemory **globalmemoryp){
+	reset_yunoerror();
+	DWORD pagesize = get_page_size();
+	yunosize pageresolution = SCALE_FOR_YUNOALLOCATOR(pagesize);
+	yunosize bitarraysize = ((size / pageresolution) + (0 < size % pageresolution ? 1: 0)) * pagesize;
+	yunosize allocatorsize = SCALE_FOR_YUNOALLOCATOR(bitarraysize);
+	SECURITY_ATTRIBUTES secattrs;
+	setup_security_attributes(&secattrs);
+	ULARGE_INTEGER mappingsize;
+	mappingsize.QuadPart = bitarraysize + allocatorsize;
+	HANDLE mappingfile = CreateFileMapping(INVALID_HANDLE_VALUE, &secattrs, PAGE_EXECUTE_READWRITE | SEC_COMMIT, mappingsize.HighPart, mappingsize.LowPart, NULL);
+	if (mappingfile == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
+	}
+	void *prepared = prepare_area(mappingsize.QuadPart);
+	if (prepared == NULL){
+		return NULL;
+	}
+	void *mappedaddress = MapViewOfFileEx(mappingfile, FILE_MAP_ALL_ACCESS, 0, 0, 0, prepared);
+	if (mappedaddress == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
+	}
+	yunoshared_memory *newmemory = __allocate_yunomemory(sizeof(yunoshared_memory), globalmemoryp);
+	if (newmemory == NULL){
+		return NULL;
+	}
+	DWORD currentprocessid = GetCurrentProcessId();
+	init_yunoshared_memory(
+		currentprocessid, 
+		mappingfile, 
+		mappedaddress, 
+		allocatorsize, 
+		mappedaddress + allocatorsize, 
+		bitarraysize, 
+		mappedaddress, 
+		bitarraysize + allocatorsize, 
+		nextmemory, 
+		newmemory
+	);
+	return newmemory;
+}
+
+static inline void *doallocate (yunosize size, yunomemory **globalmemoryp, yunoshared_memory **globalsharedmemoryp){
+	reset_yunoerror();
+	DWORD currentprocessid = GetCurrentProcessId();
+	for (yunoshared_memory *memory = *globalsharedmemoryp; memory != NULL; memory = memory->next){
+		if (memory->processid == currentprocessid){
+			void *allocated = allocate_yunoallocator(size, &(memory->allocator));
+			if (allocated != NULL){
+				return allocated;
+			}
 		}
 	}
+	yunoshared_memory *newmemory = make_yunoshared_memory(size, *globalsharedmemoryp, globalmemoryp);
+	if (newmemory == NULL){
+		return NULL;
+	}
+	*globalsharedmemoryp = newmemory;
+	void *allocated = allocate_yunoallocator(size, &(newmemory->allocator));
+	if (allocated == NULL){
+		//set_yunoerror(YUNONOT_ENOUGH_MEMORY);
+		set_yunoerror(YUNOERROR);
+		return NULL;
+	}
+	return allocated;
+}
+
+void *__stdcall __allocate_yunoshared_memory (yunosize size, yunomemory **globalmemoryp, yunoshared_memory **globalsharedmemoryp){
+	reset_yunoerror();
+	HANDLE mutex = CreateMutex(NULL, FALSE, MUTEX_NAME_FOR_YUNOAPI);
+	if (mutex == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
+	}
+	switch (WaitForSingleObject(mutex, INFINITE)){
+		case WAIT_OBJECT_0:
+			break;
+		default:
+		set_yunoerror(YUNOOS_ERROR);
+			return NULL;
+	}
+	void *allocated = doallocate(size, globalmemoryp, globalsharedmemoryp);
+	if (ReleaseMutex(mutex) == 0){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
+	}
+	if (CloseHandle(mutex) == 0){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
+	}
+	return allocated;
 }

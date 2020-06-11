@@ -1,0 +1,44 @@
+
+.PHONY: clean
+clean:
+	make clean -C shared
+	make clean -C windows
+
+.PHONY: h
+h:
+	make h -C shared
+	make h -C windows 
+	make dist/yuno.h -f makefile-windows
+
+.PHONY: lib
+lib:
+	make lib -C shared 
+	make lib -C windows 
+	make dist/yuno.lib -f makefile-windows
+
+.PHONY: dll
+dll:
+	make lib -C shared 
+	make dll -C windows 
+	make dist/yuno.dll -f makefile-windows
+	make dist/yuno.def -f makefile-windows
+	make dist/yuno.exp -f makefile-windows
+	make dist/yuno.dll.lib -f makefile-windows
+
+dist/yuno.h: windows/yuno.h 
+	cp windows/yuno.h dist/yuno.h
+
+dist/yuno.lib: windows/yuno.lib 
+	cp windows/yuno.lib dist/yuno.lib 
+
+dist/yuno.dll: windows/yuno.dll 
+	cp windows/yuno.dll dist/yuno.dll 
+
+dist/yuno.def: windows/yuno.def 
+	cp windows/yuno.def dist/yuno.def 
+
+dist/yuno.exp: windows/yuno.exp 
+	cp windows/yuno.exp dist/yuno.exp 
+
+dist/yuno.dll.lib: windows/yuno.dll.lib 
+	cp windows/yuno.dll.lib dist/yuno.dll.lib 

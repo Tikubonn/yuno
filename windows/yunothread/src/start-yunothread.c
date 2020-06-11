@@ -1,9 +1,38 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunothread_status __yunocall start_yunothread (yunothread *thread){
-	if (ResumeThread(thread->thread) == -1){
-		return YUNOTHREAD_ERROR;
+static HANDLE get_current_thread (){
+	reset_yunoerror();
+	DWORD currentthreadid = GetCurrentThreadId();
+	HANDLE currentthread = OpenThread(THREAD_ALL_ACCESS, FALSE, currentthreadid);
+	if (currentthread == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
 	}
-	return YUNOTHREAD_SUCCESS;
+	return currentthread;
+}
+
+int __stdcall start_yunothread (yunothread *thread){
+	reset_yunoerror();
+	if (thread->closedp == false){
+		HANDLE currentthread = get_current_thread();
+		if (currentthread == NULL){
+			return 1;
+		}
+		if (thread->thread != currentthread){
+			if (ResumeThread(thread->thread) == (DWORD)-1){
+				set_yunoerror(YUNOOS_ERROR);
+				return 1;
+			}
+			return 0;
+		}
+		else {
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;		
+	}
 }

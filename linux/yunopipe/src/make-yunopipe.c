@@ -1,54 +1,36 @@
-#include <yuno.private>
-#include <stdlib.h>
+#include <yuno.h>
+#include <unistd.h>
+#include <stdbool.h>
 
-yunopipe_status __yunocall make_yunopipe (
-	yunosize inputbuffersize,
-	yunosize outputbuffersize,
-	yunofile **inputp,
-	yunofile **outputp){
-  yunofile *input = malloc(sizeof(yunofile));
-  if (input == NULL){
-    return YUNOPIPE_ERROR;
-  }
-  yunofile *output = malloc(sizeof(yunofile));
-  if (output == NULL){
-    free(input);
-    return YUNOPIPE_ERROR;
-  }
-	void *inputbufferseq = NULL;
-	if (0 < inputbuffersize){
-		inputbufferseq = malloc(inputbuffersize);
-		if (inputbufferseq == NULL){
-			free(input);
-			free(output);
-			return YUNOPIPE_ERROR;
-		}
+static int parse_flags (int flags, bool *asyncp){
+	switch (flags){
+		case 0:
+			*asyncp = false;
+			return 0;
+		case YUNOFILE_SYNC:
+			*asyncp = false;
+			return 0;
+		case YUNOFILE_ASYNC:
+			*asyncp = true;
+			return 0;
+		default:
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
 	}
-	void *outputbufferseq = NULL;
-	if (0 < outputbuffersize){
-		outputbufferseq = malloc(outputbuffersize);
-		if (outputbufferseq == NULL){
-			free(input);
-			free(output);
-			free(inputbufferseq);
-			return YUNOPIPE_ERROR;
-		}
-	}
-  if (make_yunopipe_manually(
-		inputbufferseq,
-		inputbuffersize,
-		outputbufferseq,
-		outputbuffersize,
-		input,
-		output) != YUNOPIPE_SUCCESS){
-    free(input);
-    free(output);
-    free(inputbufferseq);
-    free(outputbufferseq);
-    return YUNOPIPE_ERROR;
-  }
-  *inputp = input;
-  *outputp = output;
-  return YUNOPIPE_SUCCESS;
 }
 
+int make_yunopipe (int flags, void *inputbufferseq, yunosize inputbuffersize, void *outputbufferseq, yunosize outputbuffersize, yunofile *inputfilep, yunofile *outputfilep){
+	reset_yunoerror();
+	bool asyncp;
+	if (parse_flags(flags, &asyncp) != 0){
+		return 1;
+	}
+  int pipefds[2];
+  if (pipe(pipefds) == -1){
+    set_yunoerror(YUNOOS_ERROR);
+    return 1;
+  }
+  init_yunofile(pipefds[0], YUNOFILE_READABLE, asyncp, inputbufferseq, inputbuffersize, inputfilep);
+  init_yunofile(pipefds[1], YUNOFILE_WRITABLE, asyncp, outputbufferseq, outputbuffersize, outputfilep);
+  return 0;
+}

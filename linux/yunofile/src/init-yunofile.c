@@ -1,12 +1,12 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <stdbool.h>
 
-void init_yunofile (int fd, int mode, void *bufferseq, yunosize buffersize, yunofile *file){
-  file->fd = fd;
-  file->mode = mode;
-  file->asyncp = false;
-  file->asyncseek = 0;
-  file->requeststatus = YUNOFILE_FREE;
-  init_yunofile_buffer(bufferseq, buffersize, &(file->buffer));
+inline void init_yunofile (int filefd, int mode, bool asyncp, void *bufferseq, yunosize buffersize, yunofile *file){
+	file->filefd = filefd;
+	file->mode = mode;
+	file->asyncp = asyncp;
+	file->asyncstatus = YUNOFILE_FREE;
+	file->asynccompletedsize = 0; // unnecessary initialization!
+	init_yunobuffer(bufferseq, buffersize, &(file->asyncbuffer));
+	file->closedp = false;
 }
-

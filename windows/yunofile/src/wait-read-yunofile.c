@@ -1,66 +1,92 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
+#include <stdbool.h>
 
-static void copy_from_buffer (void *sequence, yunosize size, yunofile_buffer *buffer){
-	void *bufferseq = yunofile_buffer_array(buffer);
-	for (yunosize index = 0; index < size; index++){
-		((char*)sequence)[index] = 
-			((char*)bufferseq)[index];
-	}
-}
-
-yunofile_status __yunocall wait_read_yunofile (void *sequence, yunofile_wait_mode waitmode, yunofile *file, yunosize *readsizep){
-	if (file->asyncp == true){
-		if (file->requeststatus != YUNOFILE_READING){
-			return YUNOFILE_ERROR;
-		}
-		BOOL wait;
-		switch (waitmode){
-			case YUNOFILE_FOREVER: 
-				wait = TRUE;
-				break;
-			case YUNOFILE_NOWAIT: 
-				wait = FALSE;
-				break;
-			default: 
-				return YUNOFILE_ERROR;
-		}
-		DWORD readsize;
-		if (GetOverlappedResult(file->file, &(file->overlapped), &readsize, wait) == 0){
-			switch (GetLastError()){
-				case ERROR_IO_PENDING: {
-					return YUNOFILE_BUSY; // now busy!
+int __stdcall wait_read_yunofile (void *sequence, yunowait_mode waitmode, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			if (file->asyncstatus == YUNOFILE_READING){
+				BOOL winwaitmode;
+				switch (waitmode){
+					case YUNOFOREVER: 
+						winwaitmode = TRUE;
+						break;
+					case YUNONOWAIT: 
+						winwaitmode = FALSE;
+						break;
+					default:
+						set_yunoerror(YUNOARGUMENT_ERROR);
+						return 1;
 				}
-				case ERROR_BROKEN_PIPE: {
-					file->requeststatus = YUNOFILE_FREE;
-					*readsizep = 0;
-					return YUNOFILE_SUCCESS;
+				switch (WaitForSingleObject(file->event, winwaitmode)){
+					case WAIT_OBJECT_0: 
+						break;
+					case WAIT_TIMEOUT: 
+						set_yunoerror(YUNOBUSY);
+						return 1;
+					default: 
+						set_yunoerror(YUNOOS_ERROR);
+						return 1;
 				}
-				case ERROR_HANDLE_EOF: {
-					file->requeststatus = YUNOFILE_FREE;
-					*readsizep = 0;
-					return YUNOFILE_SUCCESS;
+				DWORD readsize;
+				if (GetOverlappedResult(file->file, &(file->asyncoverlapped), &readsize, winwaitmode) == 0){
+					switch (GetLastError()){
+						case ERROR_IO_PENDING: 
+							set_yunoerror(YUNOBUSY);
+							return 1;
+						case ERROR_BROKEN_PIPE:
+							file->asyncstatus = YUNOFILE_FREE;
+							*readsizep = 0;
+							return 0;
+						case ERROR_HANDLE_EOF: 
+							file->asyncstatus = YUNOFILE_FREE;
+							*readsizep = 0;
+							return 0;
+						default: 
+							set_yunoerror(YUNOOS_ERROR);
+							return 1;
+					}
 				}
-				default: {
-					return YUNOFILE_ERROR;
+				else {
+					if (set_yunobuffer_end(readsize, &(file->asyncbuffer)) != 0){
+						set_yunoerror(YUNOERROR);
+						return 1;
+					}
+					file->asyncstatus = YUNOFILE_FREE;
+					read_yunobuffer(sequence, readsize, &(file->asyncbuffer));
+					*readsizep = readsize;
+					file->asyncseek += readsize;
+					return 0;
 				}
+			}
+			else 
+			if (file->asyncstatus == YUNOFILE_READ_COMPLETED){
+				file->asyncstatus = YUNOFILE_FREE;
+				read_yunobuffer(sequence, file->asynccompletedsize, &(file->asyncbuffer));
+				*readsizep = file->asynccompletedsize;
+				return 0;
+			}
+			else {
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
 			}
 		}
 		else {
-			copy_from_buffer(sequence, readsize, &(file->buffer));
-			file->requeststatus = YUNOFILE_FREE;
-			file->asyncseek += readsize;
-			*readsizep = readsize;
-			return YUNOFILE_SUCCESS;
+			if (file->asyncstatus == YUNOFILE_READ_COMPLETED){
+				file->asyncstatus = YUNOFILE_FREE;
+				read_yunobuffer(sequence, file->asynccompletedsize, &(file->asyncbuffer));
+				*readsizep = file->asynccompletedsize;
+				return 0;
+			}
+			else {
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			}
 		}
 	}
 	else {
-		if (file->requeststatus != YUNOFILE_READ_COMPLETED){
-			return YUNOFILE_ERROR;
-		}
-		copy_from_buffer(sequence, file->completedsize, &(file->buffer));
-		file->requeststatus = YUNOFILE_FREE;
-		*readsizep = file->completedsize;
-		return YUNOFILE_SUCCESS;
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }

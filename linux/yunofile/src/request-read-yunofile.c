@@ -1,35 +1,37 @@
-#include <yuno.private>
-#include <aio.h>
-#include <unistd.h>
-#define min(a, b) ((a)<(b)?(a):(b))
+#include <yuno.h>
 
-yunofile_status __yunocall request_read_yunofile (yunosize size, yunofile *file){
-  if (file->asyncp == true){
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    yunosize si = min(size, yunofile_buffer_max_size(&(file->buffer)));
-    void *seq = yunofile_buffer_array(&(file->buffer));
-    setup_aiocb_by_yunofile(seq, si, file, &(file->cb));
-    if (aio_read(&(file->cb)) == -1){
-      return YUNOFILE_ERROR;
-    }
-    file->requeststatus = YUNOFILE_READING;
-    return YUNOFILE_SUCCESS;
-  }
-  else {
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    yunosize si = min(size, yunofile_buffer_max_size(&(file->buffer)));
-    void *seq = yunofile_buffer_array(&(file->buffer));
-    ssize_t readsize = read(file->fd, seq, si);
-    if (readsize == -1){
-      return YUNOFILE_ERROR;
-    }
-    file->requeststatus = YUNOFILE_READ_COMPLETED;
-    file->completedsize = readsize;
-    return YUNOFILE_SUCCESS;
-  }
+static int request_read_async_file (yunosize size, yunofile *file){
+	reset_yunoerror();
+	if (file->asyncstatus == YUNOFILE_FREE){
+		file->asynccompletedsize = size;
+		file->asyncstatus = YUNOFILE_READING;
+		return 0;
+	}
+	else {
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
 }
 
+static int request_read_sync_file (yunosize size, yunofile *file){
+	reset_yunoerror();
+	file->asynccompletedsize = size;
+	file->asyncstatus = YUNOFILE_READING;
+	return 0;
+}
+
+int request_read_yunofile (yunosize size, yunofile *file){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			return request_read_async_file(size, file);
+		}
+		else {
+			return request_read_sync_file(size, file);
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
+}

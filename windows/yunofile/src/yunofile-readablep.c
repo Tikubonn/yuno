@@ -1,5 +1,10 @@
-#include <yuno.private>
+#include <yuno.h>
+#include <windows.h>
+#include <stdbool.h>
 
-bool __yunocall yunofile_readablep (yunofile *file){
-	return (file->mode & YUNOFILE_READABLE) ? true : false;
+#define BOOLEAN(value) (value ? true: false)
+
+bool __stdcall yunofile_readablep (yunofile *file){
+	reset_yunoerror();
+	return BOOLEAN(file->mode & YUNOFILE_READABLE);
 }

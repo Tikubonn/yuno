@@ -1,0 +1,34 @@
+
+export CFLAGS += -lpthread -lrt
+
+.PHONY: clean
+clean:
+	make clean -C shared
+	make clean -C linux
+
+.PHONY: h
+h:
+	make h -C shared
+	make h -C linux 
+	make dist/yuno.h -f makefile-linux
+
+.PHONY: lib
+lib:
+	make lib -C shared 
+	make lib -C linux 
+	make dist/libyuno.a -f makefile-linux
+
+.PHONY: dll
+dll:
+	make lib -C shared 
+	make dll -C linux 
+	make dist/libyuno.so -f makefile-linux
+
+dist/yuno.h: linux/yuno.h 
+	cp linux/yuno.h dist/yuno.h
+
+dist/libyuno.a: linux/yuno.lib 
+	cp linux/yuno.lib dist/libyuno.a 
+
+dist/libyuno.so: linux/yuno.dll 
+	cp linux/yuno.dll dist/libyuno.so 

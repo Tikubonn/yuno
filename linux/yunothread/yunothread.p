@@ -1,11 +1,10 @@
 #include <stdbool.h>
 
 typedef struct yunothread {
-  yunothread_entry_point entrypoint;
-  void *parameter;
-  void *childstack;
-  int processid;
-  bool exitedp;
-  int exitcode;
+	pthread_t thread;
+	yunoentrypoint entrypoint;
+	void *parameter;
+	bool exitedp;
+	int exitcode;
+	bool closedp;
 } yunothread;
- 

@@ -1,72 +1,130 @@
-#include <yuno.private>
-#include <aio.h>
-#include <time.h>
-#include <errno.h>
+#define  _GNU_SOURCE
+#include <yuno.h>
+#include <poll.h>
+#include <unistd.h>
+//#include <stdio.h>
 
-static void copy_from_buffer (void *sequence, yunosize size, yunofile_buffer *buffer){
-  void *bufferseq = yunofile_buffer_array(buffer);
-  for (yunosize index = 0; index < size; index++){
-    ((char*)sequence)[index] = 
-      ((char*)(bufferseq))[index];
-  }
+static int wait_read_async_file (void *sequence, yunowait_mode waitmode, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	int timeout;
+	switch (waitmode){
+		case YUNOFOREVER:
+			timeout = -1;
+			break;
+		case YUNONOWAIT:
+			timeout = 0;
+			break;
+		default:
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+	}
+	struct pollfd pfd;
+	pfd.fd = file->filefd;
+	pfd.events = POLLIN | POLLHUP | POLLRDHUP;
+	pfd.revents = 0;
+	int pollresult = poll(&pfd, 1, timeout);
+	if (pollresult == 1){
+		/*
+		printf("POLLIN=%d\n", POLLIN);
+		printf("POLLPRI=%d\n", POLLPRI);
+		printf("POLLOUT=%d\n", POLLOUT);
+		printf("POLLRDHUP =%d\n", POLLRDHUP);
+		printf("POLLERR=%d\n", POLLERR);
+		printf("POLLIN=%d\n", POLLIN);
+		printf("POLLHUP=%d\n", POLLHUP);
+		printf("POLLNVAL=%d\n", POLLNVAL);
+		printf("POLLRDNORM=%d\n", POLLRDNORM);
+		printf("POLLRDBAND=%d\n", POLLRDBAND);
+		printf("POLLWRNORM=%d\n", POLLWRNORM);
+		printf("POLLWRBAND=%d\n", POLLWRBAND);
+		printf("pfd.events=%d\n", pfd.events);
+		printf("pfd.revents=%d\n", pfd.revents);
+		*/
+		if (pfd.revents & POLLIN){
+			ssize_t readsize = read(file->filefd, sequence, file->asynccompletedsize);
+			if (readsize == -1){
+				set_yunoerror(YUNOOS_ERROR);
+				return 1;
+			}
+			file->asyncstatus = YUNOFILE_FREE;
+			*readsizep = readsize;
+			return 0;
+		}
+		else 
+		if (pfd.revents & POLLHUP){
+			file->asyncstatus = YUNOFILE_FREE;
+			*readsizep = 0;
+			return 0;
+		}
+		else 
+		if (pfd.revents & POLLRDHUP){
+			file->asyncstatus = YUNOFILE_FREE;
+			*readsizep = 0;
+			return 0;
+		}
+		else {
+			set_yunoerror(YUNOBUSY);
+			return 1;
+		}
+	} 
+	else 
+	if (pollresult == 0){
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
+	else {
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
+	}
 }
 
-yunofile_status __yunocall wait_read_yunofile (void *sequence, yunofile_wait_mode waitmode, yunofile *file, yunosize *readsizep){
-  if (file->asyncp == true){
-    if (file->requeststatus != YUNOFILE_READING){
-      return YUNOFILE_ERROR;
-    }
-    struct timespec time;
-    struct timespec *timep;
-    switch (waitmode){
-      case YUNOFILE_FOREVER:
-        timep = NULL;
-        break;
-      case YUNOFILE_NOWAIT:
-        time.tv_sec = 0;
-        time.tv_nsec = 0;
-        timep = &time;
-        break;
-      default:
-        return YUNOFILE_ERROR;
-    }
-    struct aiocb const *cbs[] = { &(file->cb) };
-    if (aio_suspend(cbs, 1, timep) == -1){
-      switch (errno){
-        case EAGAIN:
-          return YUNOFILE_BUSY;
-        default:
-          return YUNOFILE_ERROR;
-      }
-    }
-    switch (aio_error(&(file->cb))){
-      case 0: {
-        ssize_t readsize = aio_return(&(file->cb));
-        if (readsize < 0){
-          return YUNOFILE_ERROR;
-        }
-        copy_from_buffer(sequence, readsize, &(file->buffer));
-        file->requeststatus = YUNOFILE_FREE;
-        file->asyncseek += readsize;
-        *readsizep = readsize;
-        return YUNOFILE_SUCCESS;
-      }
-      case EINPROGRESS: {
-        return YUNOFILE_BUSY;
-      }
-      default: {
-        return YUNOFILE_ERROR;
-      }
-    }
-  }
-  else {
-    if (file->requeststatus != YUNOFILE_READ_COMPLETED){
-      return YUNOFILE_ERROR;
-    }
-    copy_from_buffer(sequence, file->completedsize, &(file->buffer));
-    file->requeststatus = YUNOFILE_FREE;
-    *readsizep = file->completedsize;
-    return YUNOFILE_SUCCESS;
-  }
+static int wait_read_sync_file (void *sequence, yunowait_mode waitmode, yunofile *file, yunosize *readsizep){
+	(void)waitmode; // ignore unused warning!
+	reset_yunoerror();
+	ssize_t readsize = read(file->filefd, sequence, file->asynccompletedsize);
+	if (readsize == -1){
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
+	}
+	file->asyncstatus = YUNOFILE_FREE;
+	*readsizep = readsize;
+	return 0;
 }
 
+int wait_read_yunofile (void *sequence, yunowait_mode waitmode, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			if (file->asyncstatus == YUNOFILE_READING){
+				return wait_read_async_file(sequence, waitmode, file, readsizep);
+			}
+			else 
+			if (file->asyncstatus == YUNOFILE_FREE){
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
+			}
+		}
+		else {
+			if (file->asyncstatus == YUNOFILE_READING){
+				return wait_read_sync_file(sequence, waitmode, file, readsizep);
+			}
+			else 
+			if (file->asyncstatus == YUNOFILE_FREE){
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
+			}
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
+}

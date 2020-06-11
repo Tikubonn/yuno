@@ -1,34 +1,29 @@
 
-.always:
-
-clean: .always
-	rm -f yunomutex.lib
-	rm -f yunomutex.private
-	rm -f yunomutex.public
+.PHONY: clean
+clean:
 	rm -f compiled/close-yunomutex.o
-	rm -f compiled/free-yunomutex.o
-	rm -f compiled/make-yunomutex-manually.o
 	rm -f compiled/make-yunomutex.o
 	rm -f compiled/release-yunomutex.o
 	rm -f compiled/wait-yunomutex.o
+	rm -f yunomutex.h
+	rm -f yunomutex.lib
 
-yunomutex.private: yunomutex.p
-	cat yunomutex.p > yunomutex.private
+.PHONY: h
+h:
+	make yunomutex.h 
 
-yunomutex.public: yunomutex.p
-	cat yunomutex.p > yunomutex.public
+.PHONY: lib
+lib:
+	make yunomutex.lib 
 
-yunomutex.a: compiled/close-yunomutex.o compiled/free-yunomutex.o compiled/make-yunomutex-manually.o compiled/make-yunomutex.o compiled/release-yunomutex.o compiled/wait-yunomutex.o
-	ar r yunomutex.a compiled/close-yunomutex.o compiled/free-yunomutex.o compiled/make-yunomutex-manually.o compiled/make-yunomutex.o compiled/release-yunomutex.o compiled/wait-yunomutex.o
+yunomutex.h: yunomutex.p src/close-yunomutex.h src/make-yunomutex.h src/release-yunomutex.h src/wait-yunomutex.h
+	cat yunomutex.p src/close-yunomutex.h src/make-yunomutex.h src/release-yunomutex.h src/wait-yunomutex.h > yunomutex.h
+
+yunomutex.lib: compiled/close-yunomutex.o compiled/make-yunomutex.o compiled/release-yunomutex.o compiled/wait-yunomutex.o
+	ar r yunomutex.lib compiled/close-yunomutex.o compiled/make-yunomutex.o compiled/release-yunomutex.o compiled/wait-yunomutex.o
 
 compiled/close-yunomutex.o: src/close-yunomutex.c 
 	gcc $(CFLAGS) -c src/close-yunomutex.c -o compiled/close-yunomutex.o
-
-compiled/free-yunomutex.o: src/free-yunomutex.c 
-	gcc $(CFLAGS) -c src/free-yunomutex.c -o compiled/free-yunomutex.o
-
-compiled/make-yunomutex-manually.o: src/make-yunomutex-manually.c 
-	gcc $(CFLAGS) -c src/make-yunomutex-manually.c -o compiled/make-yunomutex-manually.o
 
 compiled/make-yunomutex.o: src/make-yunomutex.c 
 	gcc $(CFLAGS) -c src/make-yunomutex.c -o compiled/make-yunomutex.o

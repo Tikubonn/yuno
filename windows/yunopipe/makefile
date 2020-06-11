@@ -1,24 +1,23 @@
 
-.always:
-
+.PHONY: clean
 clean:
-	rm -f yunopipe.lib
-	rm -f yunopipe.private
-	rm -f yunopipe.public
-	rm -f compiled/make-yunopipe-manually.o
 	rm -f compiled/make-yunopipe.o
+	rm -f yunopipe.h
+	rm -f yunopipe.lib
 
-yunopipe.private: yunopipe.p
-	cp yunopipe.p yunopipe.private
+.PHONY: h
+h:
+	make yunopipe.h
 
-yunopipe.public: yunopipe.p
-	cp yunopipe.p yunopipe.public
+.PHONY: lib
+lib:
+	make yunopipe.lib
 
-yunopipe.lib: compiled/make-yunopipe-manually.o compiled/make-yunopipe.o
-	ar r yunopipe.lib compiled/make-yunopipe-manually.o compiled/make-yunopipe.o
+yunopipe.h: yunopipe.p src/make-yunopipe.h src/setup-yunopipe.h
+	cat yunopipe.p src/make-yunopipe.h src/setup-yunopipe.h > yunopipe.h
 
-compiled/make-yunopipe-manually.o: src/make-yunopipe-manually.c
-	gcc $(CFLAGS) -c src/make-yunopipe-manually.c -o compiled/make-yunopipe-manually.o
+yunopipe.lib: compiled/make-yunopipe.o
+	ar r yunopipe.lib compiled/make-yunopipe.o
 
 compiled/make-yunopipe.o: src/make-yunopipe.c
 	gcc $(CFLAGS) -c src/make-yunopipe.c -o compiled/make-yunopipe.o

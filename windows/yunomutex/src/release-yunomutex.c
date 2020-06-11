@@ -1,9 +1,11 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunomutex_status __yunocall release_yunomutex (yunomutex *mutex){
+int __stdcall release_yunomutex (yunomutex *mutex){
+	reset_yunoerror();
 	if (ReleaseMutex(mutex->mutex) == 0){
-		return YUNOMUTEX_ERROR;
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
 	}
-	return YUNOMUTEX_SUCCESS;
+	return 0;
 }

@@ -1,0 +1,5 @@
+#include "src/test-yunobuffer.h"
+#include "src/test-yunobuffer1.h"
+#include "src/test-seek-yunobuffer1.h"
+#include "src/test-set-yunobuffer-end1.h"
+#include "src/test-clear-yunobuffer1.h"

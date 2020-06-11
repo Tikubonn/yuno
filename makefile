@@ -1,121 +1,54 @@
 
-export CFLAGS := -g
-#export MAKEFLAGS := -r
+export CC = gcc 
+export CFLAGS = -Wall -Wextra -Werror -fPIC -I$(CURDIR)/dist -L$(CURDIR)/dist
+export DEBUG_CFLAGS = -g3
+export RELEASE_CFLAGS = -O2 -march=native
 
-export rootdir := $(CURDIR)
-export CFLAGS += -I$(CURDIR) -I$(CURDIR)/dist
+export ROOTDIR = $(CURDIR)
+export DISTDIR = $(CURDIR)/dist
+export SHAREDDIR = $(CURDIR)/shared
 
-ifeq ($(target), windows)
-export CFLAGS += -lpsapi
-else
-ifeq ($(target), linux)
-export CFLAGS += -pthread -lrt
-else
-endif
-endif
+target = windows 
 
 ifeq ($(target), windows)
-export YUNOLIB = yuno.lib
-else
+export makefile = makefile-windows
+else 
 ifeq ($(target), linux)
-export YUNOLIB = libyuno.a
-else
+export makefile = makefile-linux
+else 
+export makefile = makefile-windows
 endif
 endif
 
-ifeq ($(target), windows)
-export YUNODLL = yuno.dll
-else
-ifeq ($(target), linux)
-export YUNODLL = libyuno.so
-else
-endif
-endif
+.PHONY: default
+default:
+	make debug 
 
-all: .always
-ifeq ($(target), windows)
-	make windows
-else
-ifeq ($(target), linux)
-	make linux
-else
-	@echo "Usage:"
-	@echo "  make target=[windows|linux]        build library for target system."
-	@echo "  make clean                         cleanup the intermediate file."
-	@echo "  make test target=[windows|linux]   build and run the test."
-endif
-endif
-
-test: .always
-ifeq ($(target), windows)
-	make windows-test
-else
-ifeq ($(target), linux)
-	make linux-test
-else
-	@echo "Usage:"
-	@echo "  make test target=[windows|linux]  build and run the test."
-endif
-endif
-
-clean: .always
-	rm -f yuno.p
-	rm -f yuno-function.p
-	rm -f yuno.private
-	rm -f yuno.public
-	make clean -C windows 
-	make clean -C linux
+.PHONY: clean
+clean:
+	make clean -f $(makefile) target=$(target)
 	make clean -C test
 
-yuno.p: yunocall.p yunosize.p yunoprocess.p yunothread.p yunofile.p yunomutex.p yunosemaphore.p yunotime.p yunopipe.p yunoshared-memory.p
-	cat yunocall.p yunosize.p yunoprocess.p yunothread.p yunofile.p yunomutex.p yunosemaphore.p yunotime.p yunopipe.p yunoshared-memory.p > yuno.p
+.PHONY: debug
+debug: export CFLAGS += $(DEBUG_CFLAGS)
+debug: h lib dll test
 
-yuno-function.p: yunoprocess-function.p yunothread-function.p yunofile-function.p yunomutex-function.p yunosemaphore-function.p yunotime-function.p yunopipe-function.p yunoshared-memory-function.p
-	cat yunoprocess-function.p yunothread-function.p yunofile-function.p yunomutex-function.p yunosemaphore-function.p yunotime-function.p yunopipe-function.p yunoshared-memory-function.p > yuno-function.p
+.PHONY: release
+release: export CFLAGS += $(RELEASE_CFLAGS)
+release: h lib dll test
 
-linux-test: .always
-	make yunofile yunoprocess yunothread yunomutex yunosemaphore yunopipe yunobitarray yunoallocator yunoshared-memory -C test
+.PHONY: h
+h: 
+	make h -f $(makefile) target=$(target)
 
-dist/libyuno.a: linux/libyuno.a
-	cp linux/libyuno.a dist/libyuno.a
+.PHONY: lib
+lib: 
+	make lib -f $(makefile) target=$(target)
 
-dist/libyuno.so: linux/libyuno.so
-	cp linux/libyuno.so dist/libyuno.so
+.PHONY: dll
+dll:
+	make dll -f $(makefile) target=$(target)
 
-linux: .always
-	make yuno.p
-	make yuno-function.p
-	make yuno.private -C linux
-	make yuno.public -C linux
-	cat yuno.p linux/yuno.private yuno-function.p > yuno.private
-	cat yuno.p linux/yuno.public yuno-function.p > yuno.public
-	cp yuno.public dist/yuno.h
-	make libyuno.a -C linux
-	make libyuno.so -C linux
-	make dist/libyuno.a
-	make dist/libyuno.so
-
-windows-test: .always
-	make yunofile yunoprocess yunothread yunomutex yunosemaphore yunopipe yunobitarray yunoallocator yunoshared-memory -C test
-
-dist/yuno.lib: windows/yuno.lib
-	cp windows/yuno.lib dist/yuno.lib
-
-dist/yuno.dll: windows/yuno.dll
-	cp windows/yuno.dll dist/yuno.dll
-
-windows: .always 
-	make yuno.p
-	make yuno-function.p
-	make yuno.private -C windows
-	make yuno.public -C windows
-	cat yuno.p windows/yuno.private yuno-function.p > yuno.private
-	cat yuno.p windows/yuno.public yuno-function.p > yuno.public
-	cp yuno.public dist/yuno.h
-	make yuno.lib -C windows
-	make yuno.dll -C windows
-	make dist/yuno.lib
-	make dist/yuno.dll
-
-.always:
-
+.PHONY: test
+test:
+	make test -C test target=$(target)

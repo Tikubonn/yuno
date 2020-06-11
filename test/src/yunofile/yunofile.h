@@ -1,0 +1,6 @@
+#include "src/test-yunofile.h"
+#include "src/test-yunofile1.h"
+#include "src/test-yunofile2.h"
+#include "src/test-yunofile3.h"
+#include "src/test-seek-yunofile1.h"
+#include "src/test-yunofile4.h"

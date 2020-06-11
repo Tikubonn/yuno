@@ -1,28 +1,39 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <pthread.h>
 #include <errno.h>
 
-yunomutex_status __yunocall wait_yunomutex (yunomutex_wait_mode waitmode, yunomutex *mutex){
-	switch (waitmode){
-		case YUNOMUTEX_FOREVER: {
-			if (pthread_mutex_lock(mutex->mutexp) != 0){
-				return YUNOMUTEX_ERROR;
-			}
-			return YUNOMUTEX_SUCCESS;
-		}
-		case YUNOMUTEX_NOWAIT: {
-			if (pthread_mutex_trylock(mutex->mutexp) != 0){
-				switch (errno){
-					case EBUSY: 
-						return YUNOMUTEX_BUSY;
-					default:
-						return YUNOMUTEX_ERROR;
+int wait_yunomutex (yunowait_mode waitmode, yunomutex *mutex){
+	reset_yunoerror();
+	if (mutex->closedp == false){
+		switch (waitmode){
+			case YUNOFOREVER: {
+				if (pthread_mutex_lock(mutex->mutexp) != 0){
+					set_yunoerror(YUNOOS_ERROR);
+					return 1;
 				}
+				return 0;
 			}
-			return YUNOMUTEX_SUCCESS;
+			case YUNONOWAIT: {
+				if (pthread_mutex_trylock(mutex->mutexp) != 0){
+					switch (errno){
+						case EBUSY:
+							set_yunoerror(YUNOBUSY);
+							return 1;
+						default:
+							set_yunoerror(YUNOOS_ERROR);
+							return 1;
+					}
+				}
+				return 0;
+			}
+			default: {
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1; 
+			}
 		}
-		default: {
-			return YUNOMUTEX_ERROR; // unknown wait mode!
-		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }

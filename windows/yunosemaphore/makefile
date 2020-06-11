@@ -1,40 +1,35 @@
 
-.always:
-
-clean: .always
-	rm -f yunosemaphore.lib
-	rm -f yunosemaphore.private
-	rm -f yunosemaphore.public
-	rm -f compiled/make-yunosemaphore-manually.o
+.PHONY: clean
+clean:
 	rm -f compiled/make-yunosemaphore.o
 	rm -f compiled/wait-yunosemaphore.o
 	rm -f compiled/release-yunosemaphore.o
 	rm -f compiled/close-yunosemaphore.o
-	rm -f compiled/free-yunosemaphore.o
+	rm -f yunosemaphore.h
+	rm -f yunosemaphore.lib 
 
-yunosemaphore.private: yunosemaphore.p
-	cp yunosemaphore.p yunosemaphore.private
+.PHONY: h
+h:
+	make yunosemaphore.h 
 
-yunosemaphore.public: yunosemaphore.p
-	cp yunosemaphore.p yunosemaphore.public
+.PHONY: lib 
+lib:
+	make yunosemaphore.lib 
 
-yunosemaphore.lib: compiled/make-yunosemaphore-manually.o compiled/make-yunosemaphore.o compiled/wait-yunosemaphore.o compiled/release-yunosemaphore.o compiled/close-yunosemaphore.o compiled/free-yunosemaphore.o
-	ar r yunosemaphore.lib compiled/make-yunosemaphore-manually.o compiled/make-yunosemaphore.o compiled/wait-yunosemaphore.o compiled/release-yunosemaphore.o compiled/close-yunosemaphore.o compiled/free-yunosemaphore.o
+yunosemaphore.h: yunosemaphore.p src/make-yunosemaphore.h src/wait-yunosemaphore.h src/release-yunosemaphore.h src/close-yunosemaphore.h
+	cat yunosemaphore.p src/make-yunosemaphore.h src/wait-yunosemaphore.h src/release-yunosemaphore.h src/close-yunosemaphore.h > yunosemaphore.h 
 
-compiled/make-yunosemaphore-manually.o: src/make-yunosemaphore-manually.c 
-	gcc $(CFLAGS) -c src/make-yunosemaphore-manually.c -o compiled/make-yunosemaphore-manually.o
-	
-compiled/make-yunosemaphore.o: src/make-yunosemaphore.c
+yunosemaphore.lib: compiled/make-yunosemaphore.o compiled/wait-yunosemaphore.o compiled/release-yunosemaphore.o compiled/close-yunosemaphore.o
+	ar r yunosemaphore.lib compiled/make-yunosemaphore.o compiled/wait-yunosemaphore.o compiled/release-yunosemaphore.o compiled/close-yunosemaphore.o
+
+compiled/make-yunosemaphore.o: src/make-yunosemaphore.c 
 	gcc $(CFLAGS) -c src/make-yunosemaphore.c -o compiled/make-yunosemaphore.o
- 
+
 compiled/wait-yunosemaphore.o: src/wait-yunosemaphore.c 
 	gcc $(CFLAGS) -c src/wait-yunosemaphore.c -o compiled/wait-yunosemaphore.o
-	
-compiled/release-yunosemaphore.o: src/release-yunosemaphore.c
+
+compiled/release-yunosemaphore.o: src/release-yunosemaphore.c 
 	gcc $(CFLAGS) -c src/release-yunosemaphore.c -o compiled/release-yunosemaphore.o
-	
-compiled/close-yunosemaphore.o: src/close-yunosemaphore.c
+
+compiled/close-yunosemaphore.o: src/close-yunosemaphore.c 
 	gcc $(CFLAGS) -c src/close-yunosemaphore.c -o compiled/close-yunosemaphore.o
-	
-compiled/free-yunosemaphore.o: src/free-yunosemaphore.c 
-	gcc $(CFLAGS) -c src/free-yunosemaphore.c -o compiled/free-yunosemaphore.o

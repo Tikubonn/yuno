@@ -1,24 +1,28 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunomutex_status __yunocall wait_yunomutex (yunomutex_wait_mode waitmode, yunomutex *mutex){
-	DWORD wait;
+int __stdcall wait_yunomutex (yunowait_mode waitmode, yunomutex *mutex){
+	reset_yunoerror();
+	DWORD winwaitmode;
 	switch (waitmode){
-		case YUNOMUTEX_FOREVER:
-			wait = INFINITE;
+		case YUNONOWAIT:
+			winwaitmode = 0;
 			break;
-		case YUNOMUTEX_NOWAIT:
-			wait = 0;
+		case YUNOFOREVER:
+			winwaitmode = INFINITE;
 			break;
 		default:
-			return YUNOMUTEX_ERROR;
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
 	}
-	switch (WaitForSingleObject(mutex->mutex, wait)){
-		case WAIT_OBJECT_0: 
-			return YUNOFILE_SUCCESS;
-		case WAIT_TIMEOUT:
-			return YUNOFILE_BUSY;
+	switch (WaitForSingleObject(mutex->mutex, winwaitmode)){
+		case WAIT_OBJECT_0:
+			return 0;
+		case WAIT_TIMEOUT: 
+			set_yunoerror(YUNOBUSY);
+			return 1;
 		default:
-			return YUNOFILE_ERROR;
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
 	}
 }

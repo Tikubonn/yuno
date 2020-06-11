@@ -1,5 +1,10 @@
-#include <yuno.private>
+#include <yuno.h>
+#include <windows.h>
+#include <stdbool.h>
 
-bool __yunocall yunofile_writablep (yunofile *file){
-	return (file->mode & YUNOFILE_WRITABLE) ? true : false;
+#define BOOLEAN(value) (value ? true: false)
+
+bool __stdcall yunofile_writablep (yunofile *file){
+	reset_yunoerror();
+	return BOOLEAN(file->mode & YUNOFILE_WRITABLE);
 }

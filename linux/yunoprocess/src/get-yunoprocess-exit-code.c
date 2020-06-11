@@ -1,12 +1,26 @@
-#include <yuno.private>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <yuno.h>
+#include <unistd.h>
 
-yunoprocess_status __yunocall get_yunoprocess_exit_code (yunoprocess *process, int *exitcodep){
-  if (process->exitedp == true){
-    *exitcodep = process->exitcode;
-    return YUNOPROCESS_SUCCESS;
-  }
-  return YUNOPROCESS_BUSY;
+int get_yunoprocess_exit_code (yunoprocess *process, int *exitcodep){
+	reset_yunoerror();
+	if (process->closedp == false){
+		if (process->exitedp == true){
+			if (process->processid != getpid()){
+				*exitcodep = process->exitcode;
+				return 0;
+			}
+			else {
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			}
+		}
+		else {
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
 }
-

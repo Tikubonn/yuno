@@ -1,9 +1,17 @@
-#include <yuno.private>
-#include <semaphore.h>
+#include <yuno.h>
+#include <stdbool.h>
 
-yunosemaphore_status __yunocall close_yunosemaphore (yunosemaphore *semaphore){
-	if (free_yunoshared_memory(semaphore->semaphorep, sizeof(sem_t)) != YUNOSEMAPHORE_SUCCESS){
-		return YUNOSEMAPHORE_ERROR;
+int close_yunosemaphore (yunosemaphore *semaphore){
+	reset_yunoerror();
+	if (semaphore->closedp == false){
+		if (free_yunoshared_memory(semaphore->semaphorep, sizeof(sem_t)) != 0){
+			return 1;
+		}
+		semaphore->closedp = true;
+		return 0;
 	}
-	return YUNOSEMAPHORE_SUCCESS;
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
 }

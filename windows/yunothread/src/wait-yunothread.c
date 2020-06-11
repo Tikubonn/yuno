@@ -1,24 +1,59 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunothread_status __yunocall wait_yunothread (yunothread_wait_mode waitmode, yunothread *thread){
-	DWORD wait;
-	switch (waitmode){
-		case YUNOTHREAD_FOREVER:
-			wait = INFINITE;
-			break;
-		case YUNOTHREAD_NOWAIT:
-			wait = 0;
-			break;
-		default:
-			return YUNOTHREAD_ERROR;
+static HANDLE get_current_thread (){
+	reset_yunoerror();
+	DWORD currentthreadid = GetCurrentThreadId();
+	HANDLE currentthread = OpenThread(THREAD_ALL_ACCESS, FALSE, currentthreadid);
+	if (currentthread == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
 	}
-	switch (WaitForSingleObject(thread->thread, wait)){
-		case WAIT_OBJECT_0:
-			return YUNOTHREAD_SUCCESS;
-		case WAIT_TIMEOUT:
-			return YUNOTHREAD_BUSY;
+	return currentthread;
+}
+
+static int try_wait (yunowait_mode waitmode, yunothread *thread){
+	DWORD winwaitmode;
+	switch (waitmode){
+		case YUNOFOREVER:
+			winwaitmode = INFINITE;
+			break;
+		case YUNONOWAIT:
+			winwaitmode = 0;
+			break;
 		default:
-			return YUNOTHREAD_ERROR;
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+	}
+	switch (WaitForSingleObject(thread->thread, winwaitmode)){
+		case WAIT_OBJECT_0:
+			return 0;
+		case WAIT_TIMEOUT:
+			set_yunoerror(YUNOBUSY);
+			return 1;
+		default:
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
+	}
+}
+
+int __stdcall wait_yunothread (yunowait_mode waitmode, yunothread *thread){
+	reset_yunoerror();
+	if (thread->closedp == false){
+		HANDLE currentthread = get_current_thread();
+		if (currentthread == NULL){
+			return 1;
+		}
+		if (thread->thread != currentthread){
+			return try_wait(waitmode, thread);
+		}
+		else {
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }

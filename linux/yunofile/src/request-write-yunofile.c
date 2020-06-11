@@ -1,33 +1,41 @@
-#include <yuno.private>
-#include <aio.h>
-#include <unistd.h>
+#include <yuno.h>
 
-yunofile_status __yunocall request_write_yunofile (void *sequence, yunosize size, yunofile *file){
-  if (file->asyncp == true){
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    map_yunofile_buffer(sequence, size, &(file->buffer));
-    yunosize si = yunofile_buffer_size(&(file->buffer));
-    void *seq = yunofile_buffer_array(&(file->buffer));
-    setup_aiocb_by_yunofile(seq, si, file, &(file->cb));
-    if (aio_write(&(file->cb)) == -1){
-      return YUNOFILE_ERROR;
-    }
-    file->requeststatus = YUNOFILE_WRITING;
-    return YUNOFILE_SUCCESS;
-  }
-  else {
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    ssize_t wrotesize = write(file->fd, sequence, size);
-    if (wrotesize == -1){
-      return YUNOFILE_ERROR;
-    }
-    file->requeststatus = YUNOFILE_WRITE_COMPLETED;
-    file->completedsize = wrotesize;
-    return YUNOFILE_SUCCESS;
-  }
+static int request_write_async_file (void *sequence, yunosize size, yunofile *file){
+	reset_yunoerror();
+	if (file->asyncstatus == YUNOFILE_FREE){
+		clear_yunobuffer(&(file->asyncbuffer));
+		yunosize wrotesize = write_yunobuffer(sequence, size, &(file->asyncbuffer));
+		file->asyncstatus = YUNOFILE_WRITING;
+		file->asynccompletedsize = wrotesize;
+		return 0;
+	}
+	else {
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
 }
 
+static int request_write_sync_file (void *sequence, yunosize size, yunofile *file){
+	reset_yunoerror();
+	clear_yunobuffer(&(file->asyncbuffer));
+	yunosize wrotesize = write_yunobuffer(sequence, size, &(file->asyncbuffer));
+	file->asyncstatus = YUNOFILE_WRITING;
+	file->asynccompletedsize = wrotesize;
+	return 0;
+}
+
+int request_write_yunofile (void *sequence, yunosize size, yunofile *file){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			return request_write_async_file(sequence, size, file);
+		}
+		else {
+			return request_write_sync_file(sequence, size, file);
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
+}

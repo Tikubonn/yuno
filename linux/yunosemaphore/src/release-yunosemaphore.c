@@ -1,9 +1,17 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <semaphore.h>
 
-yunosemaphore_status __yunocall release_yunosemaphore (yunosemaphore *semaphore){
-	if (sem_post(semaphore->semaphorep) != 0){
-		return YUNOSEMAPHORE_ERROR;
+int release_yunosemaphore (yunosemaphore *semaphore){
+	reset_yunoerror();
+	if (semaphore->closedp == false){
+		if (sem_post(semaphore->semaphorep) != 0){
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
+		}
+		return 0;
 	}
-	return YUNOSEMAPHORE_SUCCESS;
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
 }

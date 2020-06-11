@@ -1,62 +1,96 @@
-#include <yuno.private>
-#include <time.h>
-#include <aio.h>
-#include <errno.h>
+#include <yuno.h>
+#include <poll.h>
+#include <unistd.h>
 
-yunofile_status __yunocall wait_write_yunofile (yunofile_wait_mode waitmode, yunofile *file, yunosize *wrotesizep){
-	if (file->asyncp == true){
-		if (file->requeststatus != YUNOFILE_WRITING){ 
-			return YUNOFILE_ERROR;
-		} 
-		struct timespec time;
-		struct timespec *timep;
-		switch (waitmode){
-			case YUNOFILE_FOREVER:
-				timep = NULL;
-				break;
-			case YUNOFILE_NOWAIT:
-				time.tv_sec = 0;
-				time.tv_nsec = 0;
-				timep = &time;
-				break;
-			default: 
-				return YUNOFILE_ERROR;
+static int wait_write_async_file (yunowait_mode waitmode, yunofile *file, yunosize *wrotesizep){
+	reset_yunoerror();
+	int timeout;
+	switch (waitmode){
+		case YUNOFOREVER:
+			timeout = -1;
+			break;
+		case YUNONOWAIT:
+			timeout = 0;
+			break;
+		default:
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
+	}
+	struct pollfd pfd;
+	pfd.fd = file->filefd;
+	pfd.events = POLLOUT;
+	pfd.revents = 0;
+	int pollresult = poll(&pfd, 1, timeout);
+	if (pollresult == 1){
+		void *bufferseq = yunobuffer_array(&(file->asyncbuffer));
+		ssize_t wrotesize = write(file->filefd, bufferseq, file->asynccompletedsize);
+		if (wrotesize == -1){
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
 		}
-		struct aiocb const *cbs[] = { &(file->cb) };
-		if (aio_suspend(cbs, 1, timep) == -1){ 
-			switch (errno){
-				case EAGAIN:
-					return YUNOFILE_BUSY;
-				default:
-					return YUNOFILE_ERROR;
+		file->asyncstatus = YUNOFILE_FREE;
+		*wrotesizep = wrotesize;
+		return 0;
+	}
+	else 
+	if (pollresult == 0){
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
+	else {
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
+	}
+}
+
+static int wait_write_sync_file (yunowait_mode waitmode, yunofile *file, yunosize *wrotesizep){
+	(void)waitmode; // ignore unused warning!
+	reset_yunoerror();
+	void *bufferseq = yunobuffer_array(&(file->asyncbuffer));
+	ssize_t wrotesize = write(file->filefd, bufferseq, file->asynccompletedsize);
+	if (wrotesize == -1){
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
+	}
+	file->asyncstatus = YUNOFILE_FREE;
+	*wrotesizep = wrotesize;
+	return 0;
+}
+
+int wait_write_yunofile (yunowait_mode waitmode, yunofile *file, yunosize *wrotesizep){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			if (file->asyncstatus == YUNOFILE_WRITING){
+				return wait_write_async_file(waitmode, file, wrotesizep);
+			}
+			else 
+			if (file->asyncstatus == YUNOFILE_FREE){
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
 			}
 		}
-		switch (aio_error(&(file->cb))){ 
-			case 0: {
-				ssize_t wrotesize = aio_return(&(file->cb));
-				if (wrotesize < 0){
-					return YUNOFILE_ERROR;
-				}
-				file->requeststatus = YUNOFILE_FREE;
-				file->asyncseek += wrotesize;
-				*wrotesizep = wrotesize;
-				return YUNOFILE_SUCCESS; 
+		else {
+			if (file->asyncstatus == YUNOFILE_WRITING){
+				return wait_write_sync_file(waitmode, file, wrotesizep);
 			}
-			case EINPROGRESS: {
-				return YUNOFILE_BUSY; 
-			} 
-			default: {
-				return YUNOFILE_ERROR; 
+			else 
+			if (file->asyncstatus == YUNOFILE_FREE){
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
 			}
 		}
 	}
 	else {
-    if (file->requeststatus != YUNOFILE_WRITE_COMPLETED){
-      return YUNOFILE_ERROR;
-    }
-    file->requeststatus = YUNOFILE_FREE;
-    *wrotesizep = file->completedsize;
-    return YUNOFILE_SUCCESS;
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }
-

@@ -1,0 +1,14 @@
+
+.PHONY: clean
+clean:
+
+.PHONY: test
+test:
+	make bin/test.exe -f makefile-windows
+	cd bin && gdb test.exe 
+
+bin/test.exe: test.c src/test.lib bin/yuno.dll $(DISTDIR)/yuno.dll.lib
+	gcc $(CFLAGS) test.c src/test.lib bin/yuno.dll $(DISTDIR)/yuno.dll.lib -o bin/test.exe
+
+bin/yuno.dll: $(DISTDIR)/yuno.dll 
+	cp $(DISTDIR)/yuno.dll bin/yuno.dll

@@ -1,12 +1,11 @@
 
-.always:
+.PHONY: clean
+clean:
+	rm -f yunosize.h
 
-clean: .always
-	rm -f yunosize.private
-	rm -f yunosize.public
+.PHONY: h
+h: 
+	make yunosize.h
 
-yunosize.private: yunosize.p
-	cp yunosize.p yunosize.private
-
-yunosize.public: yunosize.p
-	cp yunosize.p yunosize.public
+yunosize.h: yunosize.p
+	cp yunosize.p yunosize.h

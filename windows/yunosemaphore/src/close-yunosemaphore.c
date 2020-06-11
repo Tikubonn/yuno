@@ -1,9 +1,11 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunosemaphore_status __yunocall close_yunosemaphore (yunosemaphore *semaphore){
+int __stdcall close_yunosemaphore (yunosemaphore *semaphore){
+	reset_yunoerror();
 	if (CloseHandle(semaphore->semaphore) == 0){
-		return YUNOSEMAPHORE_ERROR;
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
 	}
-	return YUNOSEMAPHORE_SUCCESS;
+	return 0;
 }

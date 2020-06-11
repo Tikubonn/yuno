@@ -1,94 +1,63 @@
-#include <yuno.private>
-#include <stdlib.h>
+#include <yuno.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
-static yunoshared_memory *make_yunoshared_memory (size_t size, size_t seqsize, size_t mapsize){
-	/*
-		brk および sbrk 関数は副作用によって malloc 関数の振る舞いに影響を及ぼす可能性があるため
-		素直に malloc 関数を呼び出して領域を確保しています。
-	*/
-	yunoshared_memory *memory = malloc(sizeof(yunoshared_memory));
+#define DEFAULT_PROTOCOL (PROT_EXEC | PROT_READ | PROT_WRITE)
+#define DEFAULT_FLAGS (MAP_SHARED | MAP_ANONYMOUS)
+
+static yunoshared_memory *make_yunoshared_memory (yunosize size, yunoshared_memory *nextmemory){
+	reset_yunoerror();
+	int pagesize = getpagesize();
+	yunosize pageresolution = SCALE_FOR_YUNOALLOCATOR(pagesize);
+	yunosize bitarraysize = ((size / pageresolution) + (0 < size % pageresolution ? 1: 0)) * pagesize;
+	yunosize allocatorsize = SCALE_FOR_YUNOALLOCATOR(bitarraysize);
+	void *bitarrayseq = mmap(NULL, bitarraysize, DEFAULT_PROTOCOL, DEFAULT_FLAGS, -1, 0);
+	if (bitarrayseq == MAP_FAILED){
+		set_yunoerror(YUNOOS_ERROR);
+		return NULL;
+	}
+	void *allocatorseq = mmap(NULL, allocatorsize, DEFAULT_PROTOCOL, DEFAULT_FLAGS, -1, 0);
+	if (allocatorseq == MAP_FAILED){
+		set_yunoerror(YUNOOS_ERROR);
+		munmap(bitarrayseq, bitarraysize);
+		return NULL;
+	}
+	yunoshared_memory *memory = allocate_yunomemory(sizeof(yunoshared_memory));
 	if (memory == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		munmap(bitarrayseq, bitarraysize);
+		munmap(allocatorseq, allocatorsize);
 		return NULL;
 	}
-	void *newaddr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	if (newaddr == MAP_FAILED){
-		return NULL;
-	}
-	memory->address = newaddr;
-	memory->size = size;
-	init_yunoallocator(newaddr, seqsize, newaddr + seqsize, mapsize, &(memory->allocator));
-	memory->next = NULL;
+	init_yunoshared_memory(
+		allocatorseq,
+		allocatorsize,
+		bitarrayseq,
+		bitarraysize,
+		nextmemory,
+		memory
+	);
 	return memory;
 }
 
-static long get_page_size (){
-	return sysconf(_SC_PAGESIZE);
-}
-
-static int extend_yunoshared_memory (size_t requestsize){
-	size_t pagesize = get_page_size();
-	size_t size;
-	size_t seqsize;
-	size_t mapsize;
-	calculate_yunoallocator_size_by_request(requestsize, pagesize, &size, &seqsize, &mapsize);
-	yunoshared_memory *memory = make_yunoshared_memory(size, seqsize, mapsize);
-	if (memory == NULL){
-		return 1;
-	}
-	memory->next = global_yunoshared_memory;
-	global_yunoshared_memory = memory;
-	return 0;
-}
-
-typedef enum try_allocate_status {
-	TRY_ALLOCATE_SUCCESS,
-	TRY_ALLOCATE_ERROR,
-	TRY_ALLOCATE_NOT_ENOUGH_MEMORY
-} try_allocate_status;
-
-static try_allocate_status try_allocate (size_t size, void **newaddrp){
+void *allocate_yunoshared_memory (yunosize size){
+	reset_yunoerror();
 	for (yunoshared_memory *memory = global_yunoshared_memory; memory != NULL; memory = memory->next){
-		void *newaddr;
-		switch (allocate_yunoallocator(size, &(memory->allocator), &newaddr)){
-			case YUNOALLOCATOR_SUCCESS: 
-				*newaddrp = newaddr;
-				return TRY_ALLOCATE_SUCCESS;
-			case YUNOALLOCATOR_NOT_ENOUGH_MEMORY:
-				break;
-			default:
-				return TRY_ALLOCATE_ERROR;
+		void *allocated = allocate_yunoallocator(size, &(memory->allocator));
+		if (allocated != NULL){
+			return allocated;
 		}
 	}
-	return TRY_ALLOCATE_NOT_ENOUGH_MEMORY;
-}
-
-void __yunocall *allocate_yunoshared_memory (size_t size){
-	if (0 < size){
-		void *newaddr;
-		switch (try_allocate(size, &newaddr)){
-			case TRY_ALLOCATE_SUCCESS: {
-				return newaddr;
-			}
-			case TRY_ALLOCATE_NOT_ENOUGH_MEMORY: {
-				if (extend_yunoshared_memory(size) != 0){
-					return NULL;
-				}
-				void *newaddr;
-				switch (try_allocate(size, &newaddr)){
-					case TRY_ALLOCATE_SUCCESS: {
-						return newaddr;
-					}
-					default: {
-						return NULL;
-					}
-				}
-			}
-			default: {
-				return NULL;
-			}
-		}
+	yunoshared_memory *newmemory = make_yunoshared_memory(size, global_yunoshared_memory);
+	if (newmemory == NULL){
+		return NULL;
 	}
-	return NULL;
+	global_yunoshared_memory = newmemory;
+	void *allocated = allocate_yunoallocator(size, &(newmemory->allocator));
+	if (allocated == NULL){
+		//set_yunoerror(YUNONOT_ENOUGH_MEMORY);
+		set_yunoerror(YUNOERROR);
+		return NULL;
+	}
+	return allocated;
 }

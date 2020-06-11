@@ -1,0 +1,2 @@
+
+typedef int (*yunoentrypoint)(void*);

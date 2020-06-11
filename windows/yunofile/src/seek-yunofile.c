@@ -1,67 +1,95 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
+#include <stdbool.h>
 
-yunofile_status __yunocall seek_yunofile (yunossize seek, yunofile_whence whence, yunofile *file, yunosize *newseekp){
-	if (file->asyncp == true){
-		if (file->requeststatus != YUNOFILE_FREE){
-			return YUNOFILE_BUSY;
-		}
+static inline int seek_async (yunossize distance, yunofile_whence whence, yunofile *file, yunosize *newoffsetp){
+	reset_yunoerror();
+	if (file->asyncstatus == YUNOFILE_FREE){
 		switch (whence){
 			case YUNOFILE_BEGIN: {
-				if (seek < 0){
-					return YUNOFILE_ERROR;
-				}
-				file->asyncseek = seek;
-				return YUNOFILE_SUCCESS;
+				file->asyncseek = distance;
+				*newoffsetp = distance;
+				return 0;
 			}
 			case YUNOFILE_CURRENT: {
-				if (file->asyncseek + seek < 0){
-					return YUNOFILE_ERROR;
-				}
-				file->asyncseek = file->asyncseek + seek;
-				return YUNOFILE_SUCCESS;
+				yunosize newoffset = file->asyncseek + distance;
+				file->asyncseek = newoffset;
+				*newoffsetp = newoffset;
+				return 0;
 			}
 			case YUNOFILE_END: {
 				LARGE_INTEGER filesize;
 				if (GetFileSizeEx(file->file, &filesize) == 0){
-					return YUNOFILE_SUCCESS;
+					set_yunoerror(YUNOOS_ERROR);
+					return 1;
 				}
-				if (filesize.QuadPart + seek < 0){
-					return YUNOFILE_ERROR;
+				if (filesize.QuadPart + distance < 0){
+					set_yunoerror(YUNOARGUMENT_ERROR);
+					return 1;
 				}
-				file->asyncseek = filesize.QuadPart + seek;
-				return YUNOFILE_SUCCESS;
+				yunosize newoffset = filesize.QuadPart + distance;
+				file->asyncseek = newoffset; 
+				*newoffsetp = newoffset;
+				return 0;
 			}
 			default: {
-				return YUNOFILE_ERROR;
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
 			}
 		}
 	}
 	else {
-		if (file->requeststatus != YUNOFILE_FREE){
-			return YUNOFILE_BUSY;
-		}
-		DWORD whe;
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
+}
+
+static inline int seek_sync (yunossize distance, yunofile_whence whence, yunofile *file, yunosize *newoffsetp){
+	reset_yunoerror();
+	if (file->asyncstatus == YUNOFILE_FREE){
+		DWORD winwhence;
 		switch (whence){
 			case YUNOFILE_BEGIN:
-				whe = FILE_BEGIN;
+				winwhence = FILE_BEGIN;
 				break;
 			case YUNOFILE_CURRENT:
-				whe = FILE_CURRENT;
+				winwhence = FILE_CURRENT;
 				break;
 			case YUNOFILE_END:
-				whe = FILE_END;
+				winwhence = FILE_END;
 				break;
 			default:
-				return YUNOFILE_ERROR;
+				set_yunoerror(YUNOARGUMENT_ERROR);
+				return 1;
 		}
-		LARGE_INTEGER se;
-		se.QuadPart = seek;
+		LARGE_INTEGER windistance;
+		windistance.QuadPart = distance;
 		LARGE_INTEGER newseek;
-		if (SetFilePointerEx(file->file, se, &newseek, whe) == 0){
-			return YUNOFILE_ERROR;
+		if (SetFilePointerEx(file->file, windistance, &newseek, winwhence) == 0){
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
 		}
-		*newseekp = newseek.QuadPart;
-		return YUNOFILE_SUCCESS;
+		*newoffsetp = newseek.QuadPart;
+		return 0;	
+	}
+	else {
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
+}
+
+int __stdcall seek_yunofile (yunossize distance, yunofile_whence whence, yunofile *file, yunosize *newoffsetp){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			return seek_async(distance, whence, file, newoffsetp);
+		}
+		else {
+			return seek_sync(distance, whence, file, newoffsetp);
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }

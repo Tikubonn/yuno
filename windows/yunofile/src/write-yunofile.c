@@ -1,22 +1,36 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunofile_status __yunocall write_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *wrotesizep){
-	if (file->asyncp == true){
-		yunofile_status status1 = request_write_yunofile(sequence, size, file);
-		if (status1 != YUNOFILE_SUCCESS){
-			return status1;
+int __stdcall write_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *wrotesizep){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncstatus == YUNOFILE_FREE){
+			if (file->asyncp == true){
+				if (request_write_yunofile(sequence, size, file) != 0){
+					return 1;
+				}
+				if (wait_write_yunofile(YUNOFOREVER, file, wrotesizep) != 0){
+					return 1;
+				}
+				return 0;
+			}
+			else {
+				DWORD wrotesize;
+				if (WriteFile(file->file, sequence, size, &wrotesize, NULL) == 0){
+					set_yunoerror(YUNOOS_ERROR);
+					return 1;
+				}
+				*wrotesizep = wrotesize;
+				return 0;
+			}
 		}
-		yunofile_status status2 = wait_write_yunofile(YUNOFILE_FOREVER, file, wrotesizep);
-		if (status2 != YUNOFILE_SUCCESS){
-			return status2;
+		else {
+			set_yunoerror(YUNOBUSY);
+			return 1;
 		}
-		return YUNOFILE_SUCCESS;
 	}
 	else {
-		if (file->requeststatus != YUNOFILE_FREE){
-			return YUNOFILE_BUSY;
-		}
-		return write_sync_yunofile(sequence, size, file, wrotesizep);
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
 }

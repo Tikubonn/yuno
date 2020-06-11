@@ -1,25 +1,27 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
-#include <stdio.h>
 
-yunosemaphore_status __yunocall wait_yunosemaphore (yunosemaphore_wait_mode waitmode, yunosemaphore *semaphore){
-	DWORD wait;
+int __stdcall wait_yunosemaphore (yunowait_mode waitmode, yunosemaphore *semaphore){
+	DWORD winwaitmode;
 	switch (waitmode){
-		case YUNOSEMAPHORE_FOREVER:
-			wait = INFINITE;
+		case YUNONOWAIT:
+			winwaitmode = 0;
 			break;
-		case YUNOSEMAPHORE_NOWAIT:
-			wait = 0;
+		case YUNOFOREVER:
+			winwaitmode = INFINITE;
 			break;
 		default:
-			return YUNOSEMAPHORE_ERROR;
+			set_yunoerror(YUNOARGUMENT_ERROR);
+			return 1;
 	}
-	switch (WaitForSingleObject(semaphore->semaphore, wait)){
+	switch (WaitForSingleObject(semaphore->semaphore, winwaitmode)){
 		case WAIT_OBJECT_0:
-			return YUNOSEMAPHORE_SUCCESS;
-		case WAIT_TIMEOUT:
-			return YUNOSEMAPHORE_BUSY;
+			return 0;
+		case WAIT_TIMEOUT: 
+			set_yunoerror(YUNOBUSY);
+			return 1;
 		default:
-			return YUNOSEMAPHORE_ERROR;
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
 	}
 }

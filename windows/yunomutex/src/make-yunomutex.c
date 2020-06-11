@@ -1,14 +1,21 @@
-#include <yuno.private>
-#include <stdlib.h>
+#include <yuno.h>
+#include <windows.h>
 
-yunomutex __yunocall *make_yunomutex (){
-	yunomutex *mutex = malloc(sizeof(yunomutex));
-	if (mutex == NULL){
-		return NULL;
+static inline void setup_security_attributes (SECURITY_ATTRIBUTES *secattrs){
+	secattrs->nLength = sizeof(SECURITY_ATTRIBUTES);
+	secattrs->lpSecurityDescriptor = NULL;
+	secattrs->bInheritHandle = TRUE;
+}
+
+int __stdcall make_yunomutex (yunomutex *mutex){
+	reset_yunoerror();
+	SECURITY_ATTRIBUTES secattrs;
+	setup_security_attributes(&secattrs);
+	HANDLE winmumtex = CreateMutex(&secattrs, FALSE, NULL);
+	if (winmumtex == NULL){
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
 	}
-	if (make_yunomutex_manually(mutex) != YUNOMUTEX_SUCCESS){
-		free(mutex);
-		return NULL;
-	}
-	return mutex;
+	mutex->mutex = winmumtex;
+	return 0;
 }

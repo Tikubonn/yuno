@@ -1,12 +1,31 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
+#include <stdbool.h>
 
-yunofile_status __yunocall close_yunofile (yunofile *file){
-	if (file->requeststatus != YUNOFILE_FREE){
-		return YUNOFILE_BUSY;
+int __stdcall close_yunofile (yunofile *file){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncstatus == YUNOFILE_FREE){
+			if (CloseHandle(file->file) == 0){
+				set_yunoerror(YUNOOS_ERROR);
+				return 1; 
+			}
+			if (file->event != NULL){
+				if (CloseHandle(file->event) == 0){
+					set_yunoerror(YUNOOS_ERROR);
+					return 1; 
+				}
+			}
+			file->closedp = true;
+			return 0;
+		}
+		else {
+			set_yunoerror(YUNOBUSY);
+			return 1;
+		}
 	}
-	if (CloseHandle(file->file) == 0){
-		return YUNOFILE_ERROR;
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
-	return YUNOFILE_SUCCESS;
 }

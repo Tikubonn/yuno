@@ -1,14 +1,20 @@
-#include <yuno.private>
-#include <stdlib.h>
+#include <yuno.h>
+#include <semaphore.h>
 
-yunosemaphore __yunocall *make_yunosemaphore (int maxcount){
-	yunosemaphore *semaphore = malloc(sizeof(yunosemaphore));
-	if (semaphore == NULL){
-		return NULL;
+int make_yunosemaphore (yunosize maxcount, yunosemaphore *semaphore){
+	reset_yunoerror();
+	if (0 < maxcount){
+		sem_t *semaphorep = allocate_yunoshared_memory(sizeof(sem_t));
+		if (semaphorep == NULL){
+			return 1;
+		}
+		sem_init(semaphorep, 1, maxcount);
+		semaphore->semaphorep = semaphorep;
+		semaphore->closedp = false;
+		return 0;
 	}
-	if (make_yunosemaphore_manually(maxcount, semaphore) != YUNOMUTEX_SUCCESS){
-		free(semaphore);
-		return NULL;
+	else {
+		set_yunoerror(YUNOARGUMENT_ERROR);
+		return 1;
 	}
-	return semaphore;
 }

@@ -1,29 +1,27 @@
 
-.always:
-
-clean: .always
-	rm -f yunothread.lib
-	rm -f yunothread.private
-	rm -f yunothread.public
-	rm -f compiled/make-yunothread-manually.o
+.PHONY: clean
+clean:
 	rm -f compiled/make-yunothread.o
 	rm -f compiled/start-yunothread.o
 	rm -f compiled/wait-yunothread.o
 	rm -f compiled/close-yunothread.o
 	rm -f compiled/get-yunothread-exit-code.o
-	rm -f compiled/free-yunothread.o
+	rm -f yunothread.h
+	rm -f yunothread.lib
 
-yunothread.private: yunothread.p
-	cat yunothread.p > yunothread.private
+.PHONY: h
+h:
+	make yunothread.h 
 
-yunothread.public: yunothread.p
-	cat yunothread.p > yunothread.public
+.PHONY: lib
+lib:
+	make yunothread.lib
 
-yunothread.lib: compiled/make-yunothread-manually.o compiled/make-yunothread.o compiled/start-yunothread.o compiled/wait-yunothread.o compiled/close-yunothread.o compiled/get-yunothread-exit-code.o compiled/free-yunothread.o
-	ar r yunothread.lib compiled/make-yunothread-manually.o compiled/make-yunothread.o compiled/start-yunothread.o compiled/wait-yunothread.o compiled/close-yunothread.o compiled/get-yunothread-exit-code.o compiled/free-yunothread.o
+yunothread.h: yunothread.p src/make-yunothread.h src/start-yunothread.h src/wait-yunothread.h src/close-yunothread.h src/get-yunothread-exit-code.h  
+	cat yunothread.p src/make-yunothread.h src/start-yunothread.h src/wait-yunothread.h src/close-yunothread.h src/get-yunothread-exit-code.h > yunothread.h 
 
-compiled/make-yunothread-manually.o: src/make-yunothread-manually.c 
-	gcc $(CFLAGS) -lpsapi -c src/make-yunothread-manually.c -o compiled/make-yunothread-manually.o
+yunothread.lib: compiled/make-yunothread.o compiled/start-yunothread.o compiled/wait-yunothread.o compiled/close-yunothread.o compiled/get-yunothread-exit-code.o  
+	ar r yunothread.lib compiled/make-yunothread.o compiled/start-yunothread.o compiled/wait-yunothread.o compiled/close-yunothread.o compiled/get-yunothread-exit-code.o  
 
 compiled/make-yunothread.o: src/make-yunothread.c 
 	gcc $(CFLAGS) -c src/make-yunothread.c -o compiled/make-yunothread.o
@@ -39,6 +37,3 @@ compiled/close-yunothread.o: src/close-yunothread.c
 
 compiled/get-yunothread-exit-code.o: src/get-yunothread-exit-code.c 
 	gcc $(CFLAGS) -c src/get-yunothread-exit-code.c -o compiled/get-yunothread-exit-code.o
-
-compiled/free-yunothread.o: src/free-yunothread.c 
-	gcc $(CFLAGS) -c src/free-yunothread.c -o compiled/free-yunothread.o

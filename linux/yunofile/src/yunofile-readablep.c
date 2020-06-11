@@ -1,6 +1,8 @@
-#include <yuno.private>
+#include <yuno.h>
+#include <stdbool.h>
+
+#define BOOLEAN(value) ((value)? true: false)
 
 bool yunofile_readablep (yunofile *file){
-  return (file->mode & YUNOFILE_READABLE) ? true : false;
+	return BOOLEAN(file->mode & YUNOFILE_READABLE);
 }
-

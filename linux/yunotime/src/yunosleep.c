@@ -1,10 +1,22 @@
-#include <yuno.private>
+#include <yuno.h>
+#include <errno.h>
 #include <unistd.h>
 
-yunosleep_status __yunocall yunosleep (int seconds){
-  if (sleep(seconds) != 0){
-    return YUNOSLEEP_ERROR;
+int yunosleep (yunoseconds seconds, yunoseconds milliseconds){
+  reset_yunoerror();
+  if (usleep(milliseconds * 1000) != 0){
+  	switch (errno){
+  		case EINVAL:
+  			set_yunoerror(YUNOARGUMENT_ERROR);
+  			return 1;
+  		default:
+  			set_yunoerror(YUNOOS_ERROR);
+  			return 1;
+  	}
   }
-  return YUNOSLEEP_SUCCESS;
+  if (sleep(seconds) != 0){
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
+  }
+  return 0;
 }
-

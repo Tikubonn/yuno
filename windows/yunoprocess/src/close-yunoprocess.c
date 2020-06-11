@@ -1,15 +1,25 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunoprocess_status __yunocall close_yunoprocess (yunoprocess *process){
-	if (CloseHandle(process->process) == 0){
-		return YUNOPROCESS_ERROR;
+int __stdcall close_yunoprocess (yunoprocess *process){
+	reset_yunoerror();
+	if (process->closedp == false){
+		if (CloseHandle(process->process) == 0){
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
+		}
+		if (CloseHandle(process->thread) == 0){
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
+		}
+		if (CloseHandle(process->remotethread) == 0){
+			set_yunoerror(YUNOOS_ERROR);
+			return 1;
+		}
+		return 0;
 	}
-	if (CloseHandle(process->thread) == 0){
-		return YUNOPROCESS_ERROR;
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
 	}
-	if (CloseHandle(process->remotethread) == 0){
-		return YUNOPROCESS_ERROR;
-	}
-	return YUNOPROCESS_SUCCESS;
 }

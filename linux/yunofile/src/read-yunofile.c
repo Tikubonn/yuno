@@ -1,28 +1,52 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <unistd.h>
 
-yunofile_status __yunocall read_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
-  if (file->asyncp == true){
-    yunofile_status status1 = request_read_yunofile(size, file);
-    if (status1 != YUNOFILE_SUCCESS){
-      return status1;
-    }
-    yunofile_status status2 = wait_read_yunofile(sequence, YUNOFILE_FOREVER, file, readsizep);
-    if (status2 != YUNOFILE_SUCCESS){
-      return status2;
-    }
-    return YUNOFILE_SUCCESS;
-  }
-  else {
-    if (file->requeststatus != YUNOFILE_FREE){
-      return YUNOFILE_BUSY;
-    }
-    ssize_t readsize = read(file->fd, sequence, size);
-    if (readsize == -1){
-      return YUNOFILE_ERROR;
-    }
-    *readsizep = readsize;
-    return YUNOFILE_SUCCESS;
-  }
+static int read_async_file (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	if (file->asyncstatus == YUNOFILE_FREE){
+		if (request_read_yunofile(size, file) != 0){
+			return 1;
+		}
+		if (wait_read_yunofile(sequence, YUNOFOREVER, file, readsizep) != 0){
+			return 1;
+		}
+		return 0;
+	}
+	else {
+		set_yunoerror(YUNOBUSY);
+		return 1;
+	}
 }
 
+static int read_sync_file (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	ssize_t readsize = read(file->filefd, sequence, size);
+	if (readsize == -1){
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
+	}
+	*readsizep = readsize;
+	return 0;
+}
+
+int read_yunofile (void *sequence, yunosize size, yunofile *file, yunosize *readsizep){
+	reset_yunoerror();
+	if (file->closedp == false){
+		if (file->asyncp == true){
+			return read_async_file(sequence, size, file, readsizep);
+		}
+		else {
+			if (file->asyncstatus == YUNOFILE_FREE){
+				return read_sync_file(sequence, size, file, readsizep);
+			}
+			else {
+				set_yunoerror(YUNOBUSY);
+				return 1;
+			}
+		}
+	}
+	else {
+		set_yunoerror(YUNOALREADY_CLOSED);
+		return 1;
+	}
+}

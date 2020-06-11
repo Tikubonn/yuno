@@ -1,0 +1,5 @@
+#include "src/test-yunobitarray.h"
+#include "src/test-yunobitarray1.h"
+#include "src/test-find-yunobitarray1.h"
+#include "src/test-find-yunobitarray-filled-area1.h"
+#include "src/test-fill-yunobitarray1.h"

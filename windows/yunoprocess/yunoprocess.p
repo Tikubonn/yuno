@@ -1,11 +1,11 @@
 #include <windows.h>
+#include <stdbool.h>
 
 typedef struct yunoprocess {
-	yunoprocess_entry_point entrypoint;
 	void *parameter;
-	//yunoshared_memory **sharedmemoryp;
-	struct  yunoshared_memory **sharedmemoryp;
+	yunoentrypoint entrypoint;
 	HANDLE process;
 	HANDLE thread;
 	HANDLE remotethread;
+	bool closedp;
 } yunoprocess;

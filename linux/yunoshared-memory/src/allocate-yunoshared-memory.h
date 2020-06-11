@@ -1,2 +1,2 @@
 
-void __yunocall *allocate_yunoshared_memory (size_t);
+extern void *allocate_yunoshared_memory (yunosize);

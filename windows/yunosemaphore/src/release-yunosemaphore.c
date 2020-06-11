@@ -1,10 +1,11 @@
-#include <yuno.private>
+#include <yuno.h>
 #include <windows.h>
 
-yunosemaphore_status __yunocall release_yunosemaphore (yunosemaphore *semaphore){
-	LONG prevcount;
-	if (ReleaseSemaphore(semaphore->semaphore, 1, &prevcount) == 0){
-		return YUNOSEMAPHORE_ERROR;
+int __stdcall release_yunosemaphore (yunosemaphore *semaphore){
+	reset_yunoerror();
+	if (ReleaseSemaphore(semaphore->semaphore, 1, NULL) == 0){
+		set_yunoerror(YUNOOS_ERROR);
+		return 1;
 	}
-	return YUNOSEMAPHORE_SUCCESS;
+	return 0;
 }
